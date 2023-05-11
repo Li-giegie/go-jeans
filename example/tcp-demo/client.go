@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Li-giegie/go_jeans"
+	"github.com/Li-giegie/go-jeans"
 	"log"
 	"net"
 )
@@ -16,12 +16,17 @@ func newClient(addr string)  {
 	
 	defer conn.Close()
 
-	msgA := go_jeans.NewMsgA_String("hello i'm client !")
-	buf,err := msgA.Bytes()
+	//buf,err := go_jeans.NewMsgA([]byte("hello ? i'm the client !")).Marshal()
+	msgA := go_jeans.NewMsgA([]byte("hello ? i'm the client !"))
+	buf,err := msgA.Marshal()
 	if err!= nil {
 		log.Fatalln("client：",err)
 	}
-	_,err = conn.Write(buf)
+	_,err = conn.Write(buf.Bytes())
+	if err != nil {
+		log.Fatalln("client 发送消息失败：",err)
+	}
+	_,err = conn.Write(buf.Bytes())
 	if err != nil {
 		log.Fatalln("client 发送消息失败：",err)
 	}
@@ -36,7 +41,9 @@ func newClient(addr string)  {
 }
 
 func client_process(conn *net.Conn) (interface{},error) {
-	msgA,err :=go_jeans.UnpackA(*conn)
+	//msgA,err := new(go_jeans.MessageA).Unmarshal(*conn)
+	msgA := new(go_jeans.MessageA)
+	msgA,err :=msgA.Unmarshal(*conn)
 	if err != nil {
 		return nil, err
 	}

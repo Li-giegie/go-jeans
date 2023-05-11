@@ -12,88 +12,38 @@
 * ### 基于三类消息结构传输 ([MessageA](#消息结构)、[MessageB](#消息结构)、[MessageC](#消息结构))
 
 ## 本框架封装了常见的三类消息格式 `_proto标识代表使用Protobuff打包格式`
-* [MessageA](#消息结构) \ [MessageA_proto](#消息结构) 由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
-* [MessageB](#消息结构) \ [MessageB_proto](#消息结构) 由消息ID、消息、源地址、目的api、目的地址 组成 适用范围（个人见解）：客户端和服务端、客户端请求服务端转发到指定客户端。
-* [MessageC](#消息结构) \ [MessageC_proto](#消息结构) 与MessageB不同的是消息组成部分使用了非int类型的string类型，为什么这样做呢，在序列化和反序列化中，uint32类型占已知4个字节，比起string不确定长度不是更快速吗，更有优势？答案是速度的确如此但不能保证多用户之间的消息ID不重复这是完全使用消息ID区分的情况，如果想一些其他的办法当然也能解决ID重复问题，比如客户端之间隔离...，但想要保证每一个用户的消息的ID都不相同使用int就显得力不从心了，如果是大并发情况下产生一个重复的ID是一件非常严重和棘手的事情。
+* [MessageA](#消息类型) \ [MessageA_proto](#消息类型) 由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
+* [MessageB](#消息类型) \ [MessageB_proto](#消息类型) 由消息ID、消息、源地址、目的api、目的地址 组成 适用范围（个人见解）：客户端和服务端、客户端请求服务端转发到指定客户端。
+* [MessageC](#消息类型) \ [MessageC_proto](#消息类型) 与MessageB不同的是消息组成部分使用了非int类型的string类型，为什么这样做呢，在序列化和反序列化中，uint32类型占已知4个字节，比起string不确定长度不是更快速吗，更有优势？答案是速度的确如此但不能保证多用户之间的消息ID不重复这是完全使用消息ID区分的情况，如果想一些其他的办法当然也能解决ID重复问题，比如客户端之间隔离...，但想要保证每一个用户的消息的ID都不相同使用int就显得力不从心了，如果是大并发情况下产生一个重复的ID是一件非常严重和棘手的事情。
 
-
-## 不是最新的文档 完整的实例在test文件里面
-## 消息结构
-#### MessageA 由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
-```go
-//由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
-type MessageA struct {
-    state         protoimpl.MessageState
-    sizeCache     protoimpl.SizeCache
-    unknownFields protoimpl.UnknownFields
-    
-    MsgId uint32 `protobuf:"varint,1,opt,name=MsgId,proto3" json:"MsgId,omitempty"`
-    Msg   []byte `protobuf:"bytes,2,opt,name=Msg,proto3" json:"Msg,omitempty"`
-}
-```
-#### MessageB 由消息ID、消息、源地址（或标识）、目的接口、目的地址组成 适用范围（个人见解）：客户端和服务端、客户端请求服务端转发到指定客户端。
-```go
-//由消息ID、消息、源地址（或标识）、目的接口、目的地址组成 适用范围（个人见解）：客户端和服务端、客户端请求服务端转发到指定客户端。
-type MessageB struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	MsgId    uint32 `protobuf:"varint,1,opt,name=MsgId,proto3" json:"MsgId,omitempty"`
-	Msg      []byte `protobuf:"bytes,2,opt,name=Msg,proto3" json:"Msg,omitempty"`
-	SrcAddr  uint32 `protobuf:"varint,3,opt,name=SrcAddr,proto3" json:"SrcAddr,omitempty"`
-	DestApi  uint32 `protobuf:"varint,4,opt,name=DestApi,proto3" json:"DestApi,omitempty"`
-	DestAddr uint32 `protobuf:"varint,5,opt,name=DestAddr,proto3" json:"DestAddr,omitempty"`
-}
-
-
-```
 ## 使用教程
 * ### 在项目中导入包
-    go get -u github.com/Li-giegie/go_jeans
+  go get -u github.com/Li-giegie/go-jeans
+
 * ### 打包
-#### 选择适合的消息结构（MessageA、MessageB） 打包提供三种方法
+#### 选择适合的消息类型（MessageA、MessageB、MessageC），每个消息对象都挂在两个方法，Marshal(打包)、Unmarshal(拆包)
 ```go
-// 1. 创建一个消息
-//入参 打包的消息内容
-NewMsgA(msg []byte) *MessageA
-
-//打包字符串
-NewMsgA_String(msg string) ([]byte,error)
-
-////打包Json对象
-NewMsgA_JSON(obj interface{}) ([]byte,error)
-
-
-// 1.创建一个消息
-msgA := NewMsgA_String("hello i'm client !")
-// 2.获取字节流 
-buf,err := msgA.Bytes()
-if err != nil {
-	painc(any(err))
+//选择一种消息类型
+msgA := go_jeans.NewMsgA([]byte("hello ? i'm the client !"))
+//打包 返回*bytes.Buffer, error
+buf,err := msgA.Marshal()
+if err!= nil {
+    log.Fatalln("pack err：",err)
 }
-
-
+//buf.Bytes()打包后的字节
 ```
 
 * ### 拆包
-#### 根据打包的消息结构（MessageA、MessageB）进行拆包 
+#### 根据打包的消息类型（MessageA、MessageB、MessageC）进行拆包 
 
 ```go
-//入参一个实现了io.Reader接口的对象 在go中一般情况下为socket的 connect对象
-// 拆解MessageA 结构的包
-UnpackA(conn io.Reader) (*MessageA,error)
+//根据发送的消息类型选择接收的类型
+//创建了一个指针MessageA，并拆包
+msgA,err := new(go_jeans.MessageA).Unmarshal(*conn)
+if err != nil {
+log.Fatalln("read msg err:",err)
+}
 
-// 拆解MessageA 结构的包
-UnpackB(conn io.Reader) (*MessageB,error)
-
-```
-
-* ### 回复消息
-#### 请求过来的消息回复 非常有必要这样做 因为需要保证MsgId一致性
-```go
-// 用法一、
-msgA,err := go_jeans.UnpackA(*conn)
-msgA.Reply([]byte(""))
+log.Println(msgA)
 
 ```
