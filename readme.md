@@ -12,7 +12,7 @@
   * 基于 [Protobuff](https://zhuanlan.zhihu.com/p/401958878) 的字节流
   * 基于 封装消息头字节流
 * ### 消息打包数据结构 
-  * [MessageA](#消息结构) id + []byte
+  * [MessageA](#消息结构)
   * [MessageB](#消息结构)
   * [MessageC](#消息结构))
 
@@ -22,6 +22,7 @@
 * [MessageC](#消息结构) \ [MessageC_proto](#消息结构) 与MessageB不同的是消息组成部分使用了非int结构的string结构，为什么这样做呢，在序列化和反序列化中，uint32结构占已知4个字节，比起string不确定长度不是更快速吗，更有优势？答案是速度的确如此但不能保证多用户之间的消息ID不重复这是完全使用消息ID区分的情况，如果想一些其他的办法当然也能解决ID重复问题，比如客户端之间隔离...，但想要保证每一个用户的消息的ID都不相同使用int就显得力不从心了，如果是大并发情况下产生一个重复的ID是一件非常严重和棘手的事情。
 
 ## 使用教程
+
 * ### 在项目中导入包
   go get -u github.com/Li-giegie/go-jeans
 
@@ -50,5 +51,4 @@ log.Fatalln("read msg err:",err)
 }
 
 log.Println(msgA)
-
 ```
