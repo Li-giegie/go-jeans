@@ -5,7 +5,7 @@
 ![tcp-Pack](https://img.shields.io/badge/tcp-pack-yellowgreen)
 ![serve](https://img.shields.io/badge/network_transmission-pack-red)
 
-## 目前有3种结构（[MessageA、B、C](本框架封装了常见的三类消息格式)）2种类型（[byte](#封装消息头字节流)、[Protobuff](#消息打包方式)）的消息，包含 打包、拆包功能
+## 目前有3种结构（[MessageA、B、C](#本框架封装了常见的三类消息格式)）2种类型（[byte](#封装消息头字节流)、[Protobuff](#消息打包方式)）的消息，包含 打包、拆包功能
 
 ### [快速开始](#使用教程)
 * ### go-jeans 消息打包方式
@@ -14,7 +14,7 @@
 * ### 消息打包数据结构 
   * [MessageA](#消息结构)
   * [MessageB](#消息结构)
-  * [MessageC](#消息结构))
+  * [MessageC](#消息结构)
 
 ## 框架封装了常见的三类消息格式 `_proto标识代表使用Protobuff打包格式`
 * [MessageA](#消息结构) \ [MessageA_proto](#消息结构) 由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
