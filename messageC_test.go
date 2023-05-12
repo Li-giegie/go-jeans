@@ -2,6 +2,7 @@ package go_jeans
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -21,4 +22,19 @@ func Test_MSGC_proto(t *testing.T) {
 	fmt.Println(err)
 	var msgC MessageC_Proto
 	fmt.Println(msgC.Unmarshal(buf))
+}
+
+func TestNewMsgC_Json(t *testing.T) {
+	msgC := NewMsgC_Json(&A{Str: "hello word"},"a","b","c")
+	buf,err := msgC.Marshal()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	var _a A
+	msgC_json,err := new(MessageC_Json).Unmarshal(buf,&_a)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println(_a,msgC_json)
 }

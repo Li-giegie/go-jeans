@@ -10,6 +10,10 @@ import (
 	"io"
 )
 
+type A struct {
+	Str string
+}
+
 func _pack_proto(m protoreflect.ProtoMessage) ([]byte,error) {
 	var buf = new(bytes.Buffer)
 

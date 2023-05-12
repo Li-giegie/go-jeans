@@ -148,3 +148,19 @@ func BenchmarkA(b *testing.B) {
 		// BenchmarkName-12    	 7453050	       162.3 ns/op
 	}
 }
+
+func TestNewMsgA_Json(t *testing.T) {
+
+	msgA := NewMsgA_Json(&A{Str: "hello word!"})
+	buf,err := msgA.Marshal()
+	if err != nil {
+		log.Fatalln("-1 err ",err)
+	}
+
+	var _a A
+	msgA_json,err := new(MessageA_Json).Unmarshal(buf,&_a)
+	if err != nil {
+		log.Fatalln("-2 err ",err)
+	}
+	log.Println(_a,*msgA_json)
+}

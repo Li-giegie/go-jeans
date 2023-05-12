@@ -63,3 +63,18 @@ func BenchmarkB(b *testing.B) {
 	}
 }
 
+func TestNewMsgB_Json(t *testing.T) {
+	msgB := NewMsgB_Json(&A{Str: "hello word !"},1,2,3)
+	buf,err := msgB.Marshal()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var _a A
+	msgB_json,err := new(MessageB_Json).Unmarshal(buf,&_a)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println(_a,msgB_json)
+}
