@@ -17,6 +17,7 @@ func newClient(addr string)  {
 	defer conn.Close()
 
 	//buf,err := go_jeans.NewMsgA([]byte("hello ? i'm the client !")).Marshal()
+
 	msgA := go_jeans.NewMsgA([]byte("hello ? i'm the client !"))
 	buf,err := msgA.Marshal()
 	if err!= nil {
