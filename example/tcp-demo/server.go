@@ -33,8 +33,7 @@ func process(conn *net.Conn)  {
 			log.Fatalln(err)
 		}
 		if string(buf) == "exit" {
-			fmt.Println("bye ~")
-			break
+			log.Fatalln("bye ~")
 		}
 		fmt.Println("server receive:",string(buf))
 		err = go_jeans.Write(*conn,[]byte("pong pong pong ~"))

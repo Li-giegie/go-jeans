@@ -1,45 +1,11 @@
 package go_jeans
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"io"
 	"math"
 )
-
-type A struct {
-	Str string
-}
-
-func _pack_proto(m protoreflect.ProtoMessage) ([]byte,error) {
-	var buf = new(bytes.Buffer)
-
-	var mbuf []byte
-
-	var err error
-
-	mbuf,err = proto.Marshal(m)
-
-	if err != nil {
-		return nil,newErr("Marshal proto err:",err)
-	}
-
-	if err = binary.Write(buf,binary.LittleEndian,uint32(len(mbuf)));err != nil {
-		return nil, newErr("write msg len err :",err)
-	}
-	_,err = buf.Write(mbuf)
-
-	return buf.Bytes(),nil
-}
-
-func Write(w io.Writer,buf []byte) error {
-	_,err := w.Write(Pack(buf))
-	return err
-}
 
 type PacketHerderLenType byte
 
@@ -48,6 +14,11 @@ const (
 	PacketHerderLen_32
 	PacketHerderLen_64
 )
+
+func Write(w io.Writer,buf []byte) error {
+	_,err := w.Write(Pack(buf))
+	return err
+}
 
 // 自定义消息头长度模式支持2字节、4字节、8字节
 func WriteN(w io.Writer,buf []byte,whl PacketHerderLenType) error {
@@ -60,26 +31,11 @@ func WriteN(w io.Writer,buf []byte,whl PacketHerderLenType) error {
 }
 
 func Read(r io.Reader) ([]byte,error) {
-	packLen,err := ReadN(r,4)
-	if err != nil {
-		return nil, newErr("read data err -1:",err)
-	}
-
-	return ReadN(r,binary.LittleEndian.Uint32(packLen))
+	return Unpack(r)
 }
 
-func ReadN(r io.Reader,length uint32) ([]byte,error) {
-	var tmp = make([]byte,length,length)
-	_,err := io.ReadFull(r,tmp)
-	return tmp,err
-}
-
-func newErr(textOrErr ...interface{}) error {
-	var errBuf = new(bytes.Buffer)
-	for _, i := range textOrErr {
-		errBuf.WriteString(fmt.Sprint(i))
-	}
-	return errors.New(errBuf.String())
+func ReadN(r io.Reader,whl PacketHerderLenType) ([]byte,error) {
+	return UnpackN(r,whl)
 }
 
 // 打包头的长度：32字节
@@ -131,24 +87,30 @@ func UnpackN(r io.Reader,pLen PacketHerderLenType) (buf []byte,err error) {
 	var packHeaderLen uint
 	switch pLen {
 	case PacketHerderLen_16:
-		lenBuf,err := ReadN(r,2)
+		lenBuf,err := read(r,2)
 		if err != nil {
 			return nil, err
 		}
 		packHeaderLen = uint(binary.LittleEndian.Uint16(lenBuf))
 	case PacketHerderLen_32:
-		lenBuf,err := ReadN(r,4)
+		lenBuf,err := read(r,4)
 		if err != nil {
 			return nil, err
 		}
 		packHeaderLen = uint(binary.LittleEndian.Uint32(lenBuf))
 	case PacketHerderLen_64:
-		lenBuf,err := ReadN(r,8)
+		lenBuf,err := read(r,8)
 		if err != nil {
 			return nil, err
 		}
 		packHeaderLen = uint(binary.LittleEndian.Uint64(lenBuf))
 	}
 
-	return  ReadN(r,uint32(packHeaderLen))
+	return  read(r,uint32(packHeaderLen))
+}
+
+func read(r io.Reader,length uint32) ([]byte,error) {
+	var tmp = make([]byte,length,length)
+	_,err := io.ReadFull(r,tmp)
+	return tmp,err
 }

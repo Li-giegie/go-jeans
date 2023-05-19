@@ -31,7 +31,7 @@ func newClient(addr string)  {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println(string(buf))
+		fmt.Println("client receive:",string(buf))
 
 	}
 }
