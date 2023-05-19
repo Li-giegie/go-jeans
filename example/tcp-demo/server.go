@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Li-giegie/go-jeans"
+	go_jeans "github.com/Li-giegie/go-jeans"
 	//"fmt"
 	"log"
 	"net"
@@ -28,26 +28,19 @@ func server()  {
 func process(conn *net.Conn)  {
 	defer (*conn).Close()
 	for  {
-
-		//msgA,err := new(go_jeans.MessageA).Unmarshal(*conn)
-		msgA,err := new(go_jeans.MessageA).Unmarshal(*conn)
+		buf,err := go_jeans.Read(*conn)
 		if err != nil {
-			log.Println("read msg err:",err)
+			log.Fatalln(err)
+		}
+		if string(buf) == "exit" {
+			fmt.Println("bye ~")
 			break
 		}
-		fmt.Println("server receive: ",msgA.MsgId,string(msgA.Msg))
-		msgA.Msg = []byte("server reply")
-		wbuf,err := msgA.Marshal()
+		fmt.Println("server receive:",string(buf))
+		err = go_jeans.Write(*conn,[]byte("pong pong pong ~"))
 		if err != nil {
-			log.Println("打包消息失败",err)
-			break
-		}
-		_,err= (*conn).Write(wbuf.Bytes())
-		if err != nil {
-			log.Println("server 返回消息失败：",err)
-			break
+			log.Fatalln(err)
 		}
 	}
 
-	log.Println("连接断开------")
 }

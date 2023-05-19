@@ -100,13 +100,13 @@ func PackN(buf []byte,pLen PacketHerderLenType) ([]byte,error) {
 		bufBinayLen = make([]byte,2)
 		binary.LittleEndian.PutUint16(bufBinayLen,uint16(len(buf)))
 	case PacketHerderLen_32:
-		if len(buf)+4 > math.MaxUint32 {
+		if uint32(len(buf)+4) > uint32(math.MaxUint32) {
 			return nil,errors.New("WriteHerderLen_32 overflow")
 		}
 		bufBinayLen = make([]byte,4)
 		binary.LittleEndian.PutUint32(bufBinayLen,uint32(len(buf)))
 	case PacketHerderLen_64:
-		if len(buf)+8 > math.MaxUint64 {
+		if uint64(len(buf)+8) > uint64(math.MaxUint64) {
 			return nil,errors.New("WriteHerderLen_64 overflow")
 		}
 		bufBinayLen = make([]byte,8)
