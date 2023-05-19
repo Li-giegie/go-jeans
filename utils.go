@@ -35,8 +35,16 @@ func _pack_proto(m protoreflect.ProtoMessage) ([]byte,error) {
 	return buf.Bytes(),nil
 }
 
-func Read(conn io.Reader) ([]byte,error) {
+type PacketHerderLenType byte
 
+func Write(conn io.Writer,buf []byte) error {
+	var hl = make([]byte,4)
+	binary.LittleEndian.PutUint32(hl,uint32(len(buf)))
+	_,err := conn.Write(append(hl,buf...))
+	return err
+}
+
+func Read(conn io.Reader) ([]byte,error) {
 	packLen,err := ReadN(conn,4)
 	if err != nil {
 		return nil, newErr("read data err -1:",err)
