@@ -35,17 +35,17 @@ func _pack_proto(m protoreflect.ProtoMessage) ([]byte,error) {
 	return buf.Bytes(),nil
 }
 
-func _read(conn io.Reader) ([]byte,error) {
+func Read(conn io.Reader) ([]byte,error) {
 
-	packLen,err := _readN(conn,4)
+	packLen,err := ReadN(conn,4)
 	if err != nil {
 		return nil, newErr("read data err -1:",err)
 	}
 
-	return _readN(conn,binary.LittleEndian.Uint32(packLen))
+	return ReadN(conn,binary.LittleEndian.Uint32(packLen))
 }
 
-func _readN(conn io.Reader,length uint32) ([]byte,error) {
+func ReadN(conn io.Reader,length uint32) ([]byte,error) {
 	var tmp = make([]byte,length,length)
 	_,err := io.ReadFull(conn,tmp)
 	return tmp,err

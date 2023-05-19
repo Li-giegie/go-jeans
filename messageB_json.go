@@ -11,7 +11,7 @@ import (
 
 type MessageB_Json struct {
 	MsgId         uint32 `json:"MsgId,omitempty"`
-	msgObj        interface{}
+	MsgObj        interface{}
 	SrcAddr       uint32 `json:"SrcAddr,omitempty"`
 	DestApi       uint32 `json:"DestApi,omitempty"`
 	DestAddr      uint32 `json:"DestAddr,omitempty"`
@@ -23,7 +23,7 @@ func NewMsgB_Json(msgObj interface{},SrcAddr,DestApi,DestAddr uint32) *MessageB_
 	defer lock.Unlock()
 	return &MessageB_Json{
 		MsgId:    count,
-		msgObj:      msgObj,
+		MsgObj:      msgObj,
 		SrcAddr:  SrcAddr,
 		DestApi:  DestApi,
 		DestAddr: DestAddr,
@@ -32,7 +32,7 @@ func NewMsgB_Json(msgObj interface{},SrcAddr,DestApi,DestAddr uint32) *MessageB_
 
 func (a *MessageB_Json) Marshal() (*bytes.Buffer,error) {
 
-	jbuf,err := json.Marshal(a.msgObj)
+	jbuf,err := json.Marshal(a.MsgObj)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (a *MessageB_Json) Marshal() (*bytes.Buffer,error) {
 }
 
 func (a *MessageB_Json) Unmarshal(conn io.Reader,msgObj interface{}) (*MessageB_Json,error) {
-	buf,err := _read(conn)
+	buf,err := Read(conn)
 	if err != nil {
 		return nil,err
 	}

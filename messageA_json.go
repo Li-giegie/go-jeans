@@ -9,7 +9,7 @@ import (
 
 type MessageA_Json struct {
 	MsgId         uint32 `json:"MsgId,omitempty"`
-	msgObj interface{}
+	MsgObj interface{}
 }
 
 func NewMsgA_Json(msgObj interface{}) *MessageA_Json  {
@@ -18,13 +18,13 @@ func NewMsgA_Json(msgObj interface{}) *MessageA_Json  {
 	defer lock.Unlock()
 	return &MessageA_Json{
 		MsgId: count,
-		msgObj: msgObj,
+		MsgObj: msgObj,
 	}
 }
 
 func (a *MessageA_Json) Marshal() (*bytes.Buffer,error) {
 
-	jbuf,err := json.Marshal(a.msgObj)
+	jbuf,err := json.Marshal(a.MsgObj)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (a *MessageA_Json) Marshal() (*bytes.Buffer,error) {
 }
 
 func (a *MessageA_Json) Unmarshal(conn io.Reader,msgObj interface{}) (*MessageA_Json,error) {
-	buf,err := _read(conn)
+	buf,err := Read(conn)
 	if err != nil {
 		return nil,err
 	}

@@ -11,7 +11,7 @@ import (
 
 type MessageC_Json struct {
 	MsgId         string `json:"MsgId,omitempty"`
-	msgObj        interface{}
+	MsgObj        interface{}
 	SrcAddr       string `json:"SrcAddr,omitempty"`
 	DestApi       string `json:"DestApi,omitempty"`
 	DestAddr      string `json:"DestAddr,omitempty"`
@@ -24,7 +24,7 @@ func NewMsgC_Json(msgObj interface{},SrcAddr,DestApi,DestAddr string) *MessageC_
 	defer lock.Unlock()
 	return &MessageC_Json{
 		MsgId:    SrcAddr + strconv.Itoa(int(count)),
-		msgObj:      msgObj,
+		MsgObj:      msgObj,
 		SrcAddr:  SrcAddr,
 		DestApi:  DestApi,
 		DestAddr: DestAddr,
@@ -33,7 +33,7 @@ func NewMsgC_Json(msgObj interface{},SrcAddr,DestApi,DestAddr string) *MessageC_
 
 func (a *MessageC_Json) Marshal() (*bytes.Buffer,error) {
 
-	jbuf,err := json.Marshal(a.msgObj)
+	jbuf,err := json.Marshal(a.MsgObj)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (a *MessageC_Json) Marshal() (*bytes.Buffer,error) {
 }
 
 func (a *MessageC_Json) Unmarshal(conn io.Reader,msgObj interface{}) (*MessageC_Json,error) {
-	buf,err := _read(conn)
+	buf,err := Read(conn)
 	if err != nil {
 		return nil,err
 	}

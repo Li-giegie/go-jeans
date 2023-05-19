@@ -76,7 +76,7 @@ func (a *MessageC) Marshal() (*bytes.Buffer,error) {
 }
 
 func (a *MessageC) Unmarshal(conn io.Reader) (*MessageC,error) {
-	buf,err := _read(conn)
+	buf,err := Read(conn)
 	if err != nil {
 		return nil,err
 	}

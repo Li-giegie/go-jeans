@@ -33,7 +33,7 @@ func (a *MessageA_Proto) Marshal() (*bytes.Buffer,error) {
 }
 
 func (a *MessageA_Proto) Unmarshal(conn io.Reader) (*MessageA_Proto,error) {
-	buf,err := _read(conn)
+	buf,err := Read(conn)
 	if err != nil {
 		return nil,err
 	}
