@@ -79,7 +79,7 @@ func Unpack(r io.Reader) (buf []byte,err error) {
 		return nil, err
 	}
 	buf = make([]byte,binary.LittleEndian.Uint32(packHeaderLen))
-	_,err = io.ReadFull(r,packHeaderLen)
+	_,err = io.ReadFull(r,buf)
 	return buf,err
 }
 
@@ -106,7 +106,7 @@ func UnpackN(r io.Reader,pLen PacketHerderLenType) (buf []byte,err error) {
 		packHeaderLen = uint(binary.LittleEndian.Uint64(lenBuf))
 	}
 
-	return  read(r,uint32(packHeaderLen))
+	return read(r,uint32(packHeaderLen))
 }
 
 func read(r io.Reader,length uint32) ([]byte,error) {
