@@ -5,21 +5,6 @@
 ![tcp-Pack](https://img.shields.io/badge/tcp-pack-yellowgreen)
 ![serve](https://img.shields.io/badge/network_transmission-pack-red)
 
-## 目前有3种结构（[MessageA、B、C](#本框架封装了常见的三类消息格式)）2种类型（[byte](#封装消息头字节流)、[Protobuff](#消息打包方式)）的消息，包含 打包、拆包功能
-
-### [快速开始](#使用教程)
-* ### go-jeans 消息打包方式
-  * 基于 [Protobuff](https://zhuanlan.zhihu.com/p/401958878) 的字节流
-  * 基于 封装消息头字节流
-* ### 消息打包数据结构 
-  * [MessageA](#消息结构)
-  * [MessageB](#消息结构)
-  * [MessageC](#消息结构)
-
-## 框架封装了常见的三类消息格式 `_proto标识代表使用Protobuff打包格式`
-* [MessageA](#消息结构) \ [MessageA_proto](#消息结构) 由消息ID、消息组成 适用范围（个人见解）：客户端、服务端简单交互
-* [MessageB](#消息结构) \ [MessageB_proto](#消息结构) 由消息ID、消息、源地址、目的api、目的地址 组成 适用范围（个人见解）：客户端和服务端、客户端请求服务端转发到指定客户端。
-* [MessageC](#消息结构) \ [MessageC_proto](#消息结构) 与MessageB不同的是消息组成部分使用了非int结构的string结构，为什么这样做呢，在序列化和反序列化中，uint32结构占已知4个字节，比起string不确定长度不是更快速吗，更有优势？答案是速度的确如此但不能保证多用户之间的消息ID不重复这是完全使用消息ID区分的情况，如果想一些其他的办法当然也能解决ID重复问题，比如客户端之间隔离...，但想要保证每一个用户的消息的ID都不相同使用int就显得力不从心了，如果是大并发情况下产生一个重复的ID是一件非常严重和棘手的事情。
 
 ## 使用教程
 
@@ -27,28 +12,19 @@
   go get -u github.com/Li-giegie/go-jeans
 
 * ### 打包
-#### 选择适合的消息结构（MessageA、MessageB、MessageC），每个消息对象都挂在两个方法，Marshal(打包)、Unmarshal(拆包)
 ```go
-//选择一种消息结构
-msgA := go_jeans.NewMsgA([]byte("hello ? i'm the client !"))
-//打包 返回*bytes.Buffer, error
-buf,err := msgA.Marshal()
-if err!= nil {
-    log.Fatalln("pack err：",err)
-}
-//buf.Bytes()打包后的字节
+//使用如下函数 参数需打包的字节
+Pack(buf []byte) []byte
+//自定义包头长度 参数二可选这16、32、64
+PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error)
 ```
 
 * ### 拆包
-#### 根据打包的消息结构（MessageA、MessageB、MessageC）进行拆包 
-
 ```go
-//根据发送的消息结构选择接收的结构
-//创建了一个指针MessageA，并拆包
-msgA,err := new(go_jeans.MessageA).Unmarshal(*conn)
-if err != nil {
-log.Fatalln("read msg err:",err)
-}
-
-log.Println(msgA)
+//入参一般是connect对象，或是实现了reader的任何对象
+Unpack(r io.Reader) (buf []byte, err error)
+//参数二 包头长度
+UnpackN(r io.Reader, pLen PacketHerderLenType) 
 ```
+
+[使用例子](./example/tcp-demo/server.go)
