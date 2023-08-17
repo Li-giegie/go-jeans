@@ -14,7 +14,7 @@ func TestNewMessage(t *testing.T) {
 		//还原成新的消息对象	new(Message).Unmarshal(buf).debug()
 		var msg2 = new(Message)
 		msg2.Unmarshal(buf)
-		msg2.debug()
+		//msg2.debug()
 	}
 }
 
