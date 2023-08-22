@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func _TestPackUnpack(t *testing.T) {
+func TestPackUnpack(t *testing.T) {
 	// 10 byte
 	var data = []byte("hello word")
 	fmt.Println(len(data), data)
@@ -21,7 +21,7 @@ func _TestPackUnpack(t *testing.T) {
 	fmt.Println(len(data2), string(data2), data2)
 }
 
-func _TestPackUnpackN(t *testing.T) {
+func TestPackUnpackN(t *testing.T) {
 	// 10 byte
 	var data = []byte("hello word")
 	fmt.Println(len(data), data)

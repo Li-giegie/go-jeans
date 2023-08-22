@@ -1,4 +1,8 @@
-# go-jeans 是一个打包套接字，字节流的包，主要用来解决TCP传输中 [粘包](https://blog.csdn.net/weixin_41047704/article/details/85340311) 的问题
+# go-jeans 是一个序列化、反序列化、拆封二进制字节流的包.
+
+**场景**
+- 用来解决TCP传输中 [粘包](https://blog.csdn.net/weixin_41047704/article/details/85340311) 的问题
+- 高性能的序列化、反序列化数据结构（不使用反射，尽最大可能提高性能）
 
 ![golang](https://img.shields.io/badge/golang-v1.19-blue)
 ![simple](https://img.shields.io/badge/simple-extend-green)
@@ -27,4 +31,6 @@ Unpack(r io.Reader) (buf []byte, err error)
 UnpackN(r io.Reader, pLen PacketHerderLenType) 
 ```
 
+* ### 序列化、反序列化使用
+[序列化、反序列化使用](./utils_test.go)  
 [使用例子](./example/tcp-demo/server.go)
