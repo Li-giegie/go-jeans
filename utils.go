@@ -1,7 +1,6 @@
 package go_jeans
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -121,117 +120,36 @@ func read(r io.Reader, length uint32) ([]byte, error) {
 
 // 将一个go中的基本类型转成字节切片，参数中包含非基本类型返回空切片和错误，注意这一步并不打包返回的切片
 func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
-	var buf = new(bytes.Buffer)
-	var err error
-	for _,arg :=range  args{
-		switch v := arg.(type) {
-		case string:
-			var hl = make([]byte, 4)
-			binary.LittleEndian.PutUint32(hl, uint32(len(v)))
-			_,err = buf.Write(append(hl,[]byte(v)...))
-		case int:
-			tmpBuffer := make([]byte,intSize)
-			if intSize == 4 {
-				binary.BigEndian.PutUint32(tmpBuffer, uint32(v))
-			}else {
-				binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
-			}
-			_,err = buf.Write(tmpBuffer)
-		case int8:
-			err = buf.WriteByte(uint8(v))
-		case int16:
-			tmpBuffer := make([]byte,2)
-			binary.BigEndian.PutUint16(tmpBuffer, uint16(v))
-			_,err = buf.Write(tmpBuffer)
-		case int32:
-			tmpBuffer := make([]byte, 4)
-			binary.BigEndian.PutUint32(tmpBuffer, uint32(v))
-			_,err = buf.Write(tmpBuffer)
-		case int64:
-			tmpBuffer := make([]byte, 8)
-			binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
-			_,err = buf.Write(tmpBuffer)
-		case uint:
-			tmpBuffer := make([]byte,intSize)
-			if intSize == 4 {
-				binary.LittleEndian.PutUint32(tmpBuffer,uint32(v))
-			}else {
-				binary.LittleEndian.PutUint64(tmpBuffer,uint64(v))
-			}
-			_,err = buf.Write(tmpBuffer)
-		case uint8:
-			err = buf.WriteByte(v)
-		case uint16:
-			tmpBuffer := make([]byte,2)
-			binary.LittleEndian.PutUint16(tmpBuffer,v)
-			_,err = buf.Write(tmpBuffer)
-		case uint32:
-			tmpBuffer := make([]byte,4)
-			binary.LittleEndian.PutUint32(tmpBuffer,v)
-			_,err = buf.Write(tmpBuffer)
-		case uint64:
-			tmpBuffer := make([]byte,8)
-			binary.LittleEndian.PutUint64(tmpBuffer,v)
-			_,err = buf.Write(tmpBuffer)
-		case float32:
-			tmpBuffer := make([]byte, 4)
-			binary.LittleEndian.PutUint32(tmpBuffer, math.Float32bits(v))
-			_,err = buf.Write(tmpBuffer)
-		case float64:
-			tmpBuffer := make([]byte, 8)
-			binary.LittleEndian.PutUint64(tmpBuffer, math.Float64bits(v))
-			_,err = buf.Write(tmpBuffer)
-		case bool:
-			if v {
-				buf.WriteByte(1)
-			}else {
-				buf.WriteByte(0)
-			}
-			continue
-		default:
-			return nil,errors.New("conversion of this type is not supported")
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return buf.Bytes(),nil
-}
-
-func BaseTypeToBytesV2(args ...interface{}) ([]byte,error) {
-	//var buf = bytes.NewBuffer(nil)
-	var bufv2 = make([]byte,0)
+	var buf = make([]byte,0,128)
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case string:
 			var hl = make([]byte, 4)
 			binary.LittleEndian.PutUint32(hl, uint32(len(v)))
-
-			bufv2 = append(bufv2, hl...)
-			bufv2 = append(bufv2, []byte(v)...)
+			buf = append(buf, hl...)
+			buf = append(buf, []byte(v)...)
 		case int:
-			tmpBuffer := make([]byte,intSize)
+			tmpBuffer := make([]byte,intSize,intSize)
 			if intSize == 4 {
 				binary.BigEndian.PutUint32(tmpBuffer, uint32(v))
 			}else {
 				binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
 			}
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case int8:
-			bufv2 = append(bufv2, uint8(v))
+			buf = append(buf, uint8(v))
 		case int16:
 			tmpBuffer := make([]byte,2)
 			binary.BigEndian.PutUint16(tmpBuffer, uint16(v))
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case int32:
 			tmpBuffer := make([]byte, 4)
 			binary.BigEndian.PutUint32(tmpBuffer, uint32(v))
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case int64:
 			tmpBuffer := make([]byte, 8)
 			binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case uint:
 			tmpBuffer := make([]byte,intSize)
 			if intSize == 4 {
@@ -239,42 +157,47 @@ func BaseTypeToBytesV2(args ...interface{}) ([]byte,error) {
 			}else {
 				binary.LittleEndian.PutUint64(tmpBuffer,uint64(v))
 			}
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case uint8:
-			bufv2 = append(bufv2, []byte{v}...)
+			buf = append(buf, []byte{v}...)
 		case uint16:
 			tmpBuffer := make([]byte,2)
 			binary.LittleEndian.PutUint16(tmpBuffer,v)
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case uint32:
 			tmpBuffer := make([]byte,4)
 			binary.LittleEndian.PutUint32(tmpBuffer,v)
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case uint64:
 			tmpBuffer := make([]byte,8)
 			binary.LittleEndian.PutUint64(tmpBuffer,v)
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case float32:
 			tmpBuffer := make([]byte, 4)
 			binary.LittleEndian.PutUint32(tmpBuffer, math.Float32bits(v))
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case float64:
 			tmpBuffer := make([]byte, 8)
 			binary.LittleEndian.PutUint64(tmpBuffer, math.Float64bits(v))
-			bufv2 = append(bufv2, tmpBuffer...)
+			buf = append(buf, tmpBuffer...)
 		case bool:
 			if v {
-				bufv2 = append(bufv2, 1)
+				buf = append(buf, 1)
 			}else {
-				bufv2 = append(bufv2, 0)
+				buf = append(buf, 0)
 			}
+		case []byte:
+			var hl = make([]byte, 4)
+			binary.LittleEndian.PutUint32(hl, uint32(len(v)))
+			buf = append(buf, hl...)
+			buf = append(buf, v...)
 		default:
 			return nil,errors.New("conversion of this type is not supported")
 		}
 	}
 
 
-	return bufv2,nil
+	return buf,nil
 }
 
 
@@ -340,6 +263,10 @@ func BytesToBaseType(buf []byte,args ...interface{})  error {
 			l:=binary.LittleEndian.Uint32(buf[index:index+4])
 			*v=string(buf[index+4:int(l)+index+4])
 			index+=4+int(l)
+		case *[]byte:
+			l:=binary.LittleEndian.Uint32(buf[index:index+4])
+			*v=buf[index+4:int(l)+index+4]
+			index+=4+int(l)
 		default:
 			return errors.New("conversion of this type is not supported")
 		}
@@ -348,3 +275,4 @@ func BytesToBaseType(buf []byte,args ...interface{})  error {
 
 	return nil
 }
+

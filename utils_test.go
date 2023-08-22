@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"testing"
 )
 
@@ -46,6 +47,8 @@ type baseType struct {
 	ui32 uint32
 	ui64 uint64
 
+	bs []byte
+
 	f32 float32
 	f64 float64
 
@@ -66,6 +69,7 @@ var bt =baseType{
 	ui64: 10,
 	f32:  11.1,
 	f64:  12.1234,
+	bs:[]byte("test[]byte"),
 	s:    "hello word !",
 }
 
@@ -73,7 +77,7 @@ var btBuf,jsonBuf []byte
 
 func init(){
 	var err error
-	btBuf,err = BaseTypeToBytes(bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
+	btBuf,err = BaseTypeToBytes(bt.bs,bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.bs,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
 	if err != nil{
 		log.Fatalln(err)
 	}
@@ -83,81 +87,85 @@ func init(){
 		log.Fatalln(err)
 		return
 	}
-	//fmt.Println("init")
+	fmt.Println("test init")
 }
 
 func TestBaseTypeToBytes(t *testing.T) {
-	buf,err := BaseTypeToBytes(bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
+	buf,err := BaseTypeToBytes(bt.bs,bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
 	if err != nil{
 		t.Error(err)
 		return
 	}
 	btBuf = buf
-	//log.Println(buf)
+	log.Println(buf)
 }
 
 func TestBytesToBaseType(t *testing.T) {
 	TestBaseTypeToBytes(t)
 	var bt2 baseType
-	err:=BytesToBaseType(btBuf,&bt2.i,&bt2.i8,&bt2.i16,&bt2.i32,&bt2.i64,&bt2.ui,&bt2.ui8,&bt2.ui16,&bt2.ui32,&bt2.ui64,&bt2.s,&bt2.b,&bt2.f32,&bt2.f64)
+
+	err:=BytesToBaseType(btBuf,&bt2.bs,&bt2.i,&bt2.i8,&bt2.i16,&bt2.i32,&bt2.i64,&bt2.ui,&bt2.ui8,&bt2.ui16,&bt2.ui32,&bt2.ui64,&bt2.s,&bt2.b,&bt2.f32,&bt2.f64)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	//log.Println(bt2)
+	log.Println(bt2)
 }
 
-//go test -bench=BenchmarkBaseTypeToBytes$   -benchtime=3s .\ -cpuprofile="BenchmarkBaseTypeToBytes_CPUV1.out"
-func BenchmarkBaseTypeToBytes(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_,err := BaseTypeToBytes(bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
-		if err != nil{
-			b.Error(err)
-			return
+type Person struct {
+	Name    string
+	Age     int
+	Address Address
+}
+
+type Address struct {
+	Street  string
+	City    string
+	Country string
+	M map[string]int
+}
+
+//experimental stage
+func PrintStructMembers(data interface{}) {
+	v := reflect.ValueOf(data)
+	t := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldType := t.Field(i)
+
+		fmt.Printf("%s: ", fieldType.Name)
+
+		switch field.Kind() {
+		case reflect.Struct:
+			fmt.Println()
+			PrintStructMembers(field.Interface())
+		case reflect.Map:
+			fmt.Println()
+			keys := field.MapKeys()
+			for _, key := range keys {
+				value := field.MapIndex(key)
+				fmt.Printf("%s: %v\n", key, value)
+			}
+		default:
+			fmt.Println(field.Interface())
 		}
 	}
 }
 
-//go test -bench=BenchmarkBaseTypeToBytesV2$   -benchtime=3s .\ -cpuprofile="BenchmarkBaseTypeToBytes_CPUV2.out"
-func BenchmarkBaseTypeToBytesV2(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_,err := BaseTypeToBytesV2(bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
-		if err != nil{
-			b.Error(err)
-			return
-		}
+func TestPrintStructMembers(t *testing.T) {
+	person := Person{
+		Name: "John Doe",
+		Age:  30,
+		Address: Address{
+			Street:  "123 Main St",
+			City:    "New York",
+			Country: "USA",
+			M: map[string]int{
+				"1":1,
+			},
+		},
 	}
-}
 
-func BenchmarkBytesToBaseType(b *testing.B) {
-	var bt2 baseType
-	for i := 0; i < b.N; i++ {
-		err:=BytesToBaseType(btBuf,&bt2.i,&bt2.i8,&bt2.i16,&bt2.i32,&bt2.i64,&bt2.ui,&bt2.ui8,&bt2.ui16,&bt2.ui32,&bt2.ui64,&bt2.s,&bt2.b,&bt2.f32,&bt2.f64)
-		if err != nil {
-			b.Error(err)
-			return
-		}
-	}
-}
-
-
-func BenchmarkMarshal_JSON(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_,err := json.Marshal(bt)
-		if err != nil {
-			b.Error(err)
-			return
-		}
-	}
-}
-
-func BenchmarkUnmarshal_JSON(b *testing.B) {
-	var bt2 baseType
-	for i := 0; i < b.N; i++ {
-		err := json.Unmarshal(jsonBuf,&bt2)
-		if err != nil {
-			b.Error(err)
-			return
-		}
-	}
+	PrintStructMembers(person)
 }
