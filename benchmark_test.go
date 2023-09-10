@@ -23,6 +23,12 @@ func init(){
 	fmt.Println("benchmark init")
 }
 
+//BenchmarkPack-12    	42299990	        26.61 ns/op
+func BenchmarkPack(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Pack([]byte("qwertyuiop1234567890!@#@#$%^&*()_{"))
+	}
+}
 
 //go test -bench=BenchmarkBaseTypeToBytes$   -benchtime=3s .\ -cpuprofile="BenchmarkBaseTypeToBytes_CPUV1.out"
 func Benchmark_BaseTypeToBytes(b *testing.B) {

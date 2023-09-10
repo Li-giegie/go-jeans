@@ -10,6 +10,10 @@ import (
 
 const intSize = unsafe.Sizeof(int(1))
 
+//定义用于存放序列化基础类型后的字节切片的缓冲区大小
+var BaseTypeToBytesBufferSize = 128
+
+//包头长度
 type PacketHerderLenType byte
 
 const (
@@ -120,7 +124,7 @@ func read(r io.Reader, length uint32) ([]byte, error) {
 
 // 将一个go中的基本类型转成字节切片，参数中包含非基本类型返回空切片和错误，注意这一步并不打包返回的切片
 func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
-	var buf = make([]byte,0,128)
+	var buf = make([]byte,0,BaseTypeToBytesBufferSize)
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case string:
