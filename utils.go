@@ -273,10 +273,16 @@ func BytesToBaseType(buf []byte, args ...interface{}) error {
 			index += 8
 		case *string:
 			l := binary.LittleEndian.Uint32(buf[index : index+4])
+			if int(l) > len(buf[index+4:])  {
+				return ErrOfBytesToBaseType_String
+			}
 			*v = string(buf[index+4 : int(l)+index+4])
 			index += 4 + int(l)
 		case *[]byte:
 			l := binary.LittleEndian.Uint32(buf[index : index+4])
+			if int(l) > len(buf[index+4:])  {
+				return ErrOfBytesToBaseType_SliceBytes
+			}
 			*v = buf[index+4 : int(l)+index+4]
 			index += 4 + int(l)
 		default:
