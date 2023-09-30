@@ -10,10 +10,10 @@ import (
 
 const intSize = unsafe.Sizeof(int(1))
 
-//定义用于存放序列化基础类型后的字节切片的缓冲区大小
+// 定义用于存放序列化基础类型后的字节切片的缓冲区大小
 var BaseTypeToBytesBufferSize = 128
 
-//包头长度
+// 包头长度
 type PacketHerderLenType byte
 
 const (
@@ -45,14 +45,14 @@ func ReadN(r io.Reader, whl PacketHerderLenType) ([]byte, error) {
 	return UnpackN(r, whl)
 }
 
-// 打包头的长度：32字节
+// 将一个字节切片重新封装成：4个字节长度+buf，的新buf（数据包）
 func Pack(buf []byte) []byte {
 	var hl = make([]byte, 4)
 	binary.LittleEndian.PutUint32(hl, uint32(len(buf)))
 	return append(hl, buf...)
 }
 
-// 自定义打包头的长度：16、32、64字节
+// 将一个字节切片重新封装成：自定义长度长度（plen（入参））+ +buf，的新buf（数据包）
 func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
 	var bufBinayLen []byte
 	switch pLen {
@@ -79,13 +79,15 @@ func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
 	return append(bufBinayLen, buf...), nil
 }
 
+// 入参一个reader，返回一个有由Pack、PackN打包的完整的
 func Unpack(r io.Reader) (buf []byte, err error) {
 	var packHeaderLen = make([]byte, 4, 4)
 	_, err = io.ReadFull(r, packHeaderLen)
 	if err != nil {
 		return nil, err
 	}
-	buf = make([]byte, binary.LittleEndian.Uint32(packHeaderLen))
+	pl := binary.LittleEndian.Uint32(packHeaderLen)
+	buf = make([]byte, pl)
 	_, err = io.ReadFull(r, buf)
 	return buf, err
 }
@@ -123,8 +125,8 @@ func read(r io.Reader, length uint32) ([]byte, error) {
 }
 
 // 将一个go中的基本类型转成字节切片，参数中包含非基本类型返回空切片和错误，注意这一步并不打包返回的切片
-func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
-	var buf = make([]byte,0,BaseTypeToBytesBufferSize)
+func BaseTypeToBytes(args ...interface{}) ([]byte, error) {
+	var buf = make([]byte, 0, BaseTypeToBytesBufferSize)
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case string:
@@ -133,17 +135,17 @@ func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
 			buf = append(buf, hl...)
 			buf = append(buf, []byte(v)...)
 		case int:
-			tmpBuffer := make([]byte,intSize,intSize)
+			tmpBuffer := make([]byte, intSize, intSize)
 			if intSize == 4 {
 				binary.BigEndian.PutUint32(tmpBuffer, uint32(v))
-			}else {
+			} else {
 				binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
 			}
 			buf = append(buf, tmpBuffer...)
 		case int8:
 			buf = append(buf, uint8(v))
 		case int16:
-			tmpBuffer := make([]byte,2)
+			tmpBuffer := make([]byte, 2)
 			binary.BigEndian.PutUint16(tmpBuffer, uint16(v))
 			buf = append(buf, tmpBuffer...)
 		case int32:
@@ -155,26 +157,26 @@ func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
 			binary.BigEndian.PutUint64(tmpBuffer, uint64(v))
 			buf = append(buf, tmpBuffer...)
 		case uint:
-			tmpBuffer := make([]byte,intSize)
+			tmpBuffer := make([]byte, intSize)
 			if intSize == 4 {
-				binary.LittleEndian.PutUint32(tmpBuffer,uint32(v))
-			}else {
-				binary.LittleEndian.PutUint64(tmpBuffer,uint64(v))
+				binary.LittleEndian.PutUint32(tmpBuffer, uint32(v))
+			} else {
+				binary.LittleEndian.PutUint64(tmpBuffer, uint64(v))
 			}
 			buf = append(buf, tmpBuffer...)
 		case uint8:
 			buf = append(buf, []byte{v}...)
 		case uint16:
-			tmpBuffer := make([]byte,2)
-			binary.LittleEndian.PutUint16(tmpBuffer,v)
+			tmpBuffer := make([]byte, 2)
+			binary.LittleEndian.PutUint16(tmpBuffer, v)
 			buf = append(buf, tmpBuffer...)
 		case uint32:
-			tmpBuffer := make([]byte,4)
-			binary.LittleEndian.PutUint32(tmpBuffer,v)
+			tmpBuffer := make([]byte, 4)
+			binary.LittleEndian.PutUint32(tmpBuffer, v)
 			buf = append(buf, tmpBuffer...)
 		case uint64:
-			tmpBuffer := make([]byte,8)
-			binary.LittleEndian.PutUint64(tmpBuffer,v)
+			tmpBuffer := make([]byte, 8)
+			binary.LittleEndian.PutUint64(tmpBuffer, v)
 			buf = append(buf, tmpBuffer...)
 		case float32:
 			tmpBuffer := make([]byte, 4)
@@ -187,7 +189,7 @@ func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
 		case bool:
 			if v {
 				buf = append(buf, 1)
-			}else {
+			} else {
 				buf = append(buf, 0)
 			}
 		case []byte:
@@ -196,81 +198,87 @@ func BaseTypeToBytes(args ...interface{}) ([]byte,error) {
 			buf = append(buf, hl...)
 			buf = append(buf, v...)
 		default:
-			return nil,errors.New("conversion of this type is not supported")
+			return nil, errors.New("conversion of this type is not supported")
 		}
 	}
 
-
-	return buf,nil
+	return buf, nil
 }
 
-
 // 将一个字节切片序列化成入参的值，参数要求是GO的基本类型，指针形式传递
-func BytesToBaseType(buf []byte,args ...interface{})  error {
+func BytesToBaseType(buf []byte, args ...interface{}) error {
 	var index int
-	for i:=0;i< len(args);i++ {
+	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
 		case *bool:
-			if buf[index] == 1{
+			if buf[index] == 1 {
 				*v = true
-			}else{
-				*v=false
+			} else {
+				*v = false
 			}
 			index++
 		case *int:
 			if intSize == 4 {
-				*v = int(int32(binary.BigEndian.Uint32(buf[index:index+4])))
-				index+=4
-			}else {
-				*v = int(int64(binary.BigEndian.Uint64(buf[index:index+8])))
-				index+=8
+				*v = int(int32(binary.BigEndian.Uint32(buf[index : index+4])))
+				index += 4
+			} else {
+				*v = int(int64(binary.BigEndian.Uint64(buf[index : index+8])))
+				index += 8
 			}
 		case *int8:
 			*v = int8(buf[index])
 			index++
 		case *int16:
-			*v = int16(binary.BigEndian.Uint16(buf[index:index+2]))
-			index+=2
+			*v = int16(binary.BigEndian.Uint16(buf[index : index+2]))
+			index += 2
 		case *int32:
-			*v = int32(binary.BigEndian.Uint32(buf[index:index+4]))
-			index+=4
+			*v = int32(binary.BigEndian.Uint32(buf[index : index+4]))
+			index += 4
 		case *int64:
-			*v = int64(binary.BigEndian.Uint64(buf[index:index+8]))
-			index+=8
+			*v = int64(binary.BigEndian.Uint64(buf[index : index+8]))
+			index += 8
 		case *uint:
 			if intSize == 4 {
-				*v =uint( binary.LittleEndian.Uint32(buf[index:index+4]))
-				index+=4
-			}else {
-				*v =uint(binary.LittleEndian.Uint64(buf[index:index+8]))
-				index+=8
+				*v = uint(binary.LittleEndian.Uint32(buf[index : index+4]))
+				index += 4
+			} else {
+				*v = uint(binary.LittleEndian.Uint64(buf[index : index+8]))
+				index += 8
 			}
 		case *uint8:
 			*v = buf[index]
-			index+=1
+			index += 1
 		case *uint16:
-			*v = binary.LittleEndian.Uint16(buf[index:index+2])
-			index+=2
+			*v = binary.LittleEndian.Uint16(buf[index : index+2])
+			index += 2
 		case *uint32:
-			*v = binary.LittleEndian.Uint32(buf[index:index+4])
-			index+=4
+			*v = binary.LittleEndian.Uint32(buf[index : index+4])
+			index += 4
 		case *uint64:
-			*v = binary.LittleEndian.Uint64(buf[index:index+8])
-			index+=8
+			*v = binary.LittleEndian.Uint64(buf[index : index+8])
+			index += 8
 		case *float32:
-			*v = math.Float32frombits(binary.LittleEndian.Uint32(buf[index:index+4]))
-			index+=4
+			n := binary.LittleEndian.Uint32(buf[index : index+4])
+			if float32(n) > math.MaxFloat32 {
+				return ErrOfBytesToBaseType_float
+			}
+			*v = math.Float32frombits(n)
+			index += 4
 		case *float64:
-			*v = math.Float64frombits(binary.LittleEndian.Uint64(buf[index:index+8]))
-			index+=8
+			n := binary.LittleEndian.Uint64(buf[index : index+8])
+			if float64(n) > math.MaxUint64 {
+				return ErrOfBytesToBaseType_float
+			}
+			*v = math.Float64frombits(n)
+			index += 8
 		case *string:
-			l:=binary.LittleEndian.Uint32(buf[index:index+4])
-			*v=string(buf[index+4:int(l)+index+4])
-			index+=4+int(l)
+			l := binary.LittleEndian.Uint32(buf[index : index+4])
+			*v = string(buf[index+4 : int(l)+index+4])
+			index += 4 + int(l)
 		case *[]byte:
-			l:=binary.LittleEndian.Uint32(buf[index:index+4])
-			*v=buf[index+4:int(l)+index+4]
-			index+=4+int(l)
+			l := binary.LittleEndian.Uint32(buf[index : index+4])
+			*v = buf[index+4 : int(l)+index+4]
+			index += 4 + int(l)
 		default:
 			return errors.New("conversion of this type is not supported")
 		}
@@ -279,4 +287,3 @@ func BytesToBaseType(buf []byte,args ...interface{})  error {
 
 	return nil
 }
-

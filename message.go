@@ -10,13 +10,13 @@ import (
 var _count uint32
 
 type Message struct {
-	Id   uint32 
+	Id   uint32
 	Data []byte
 }
 
 func NewMsg(data []byte) *Message {
 	return &Message{
-		Id: atomic.AddUint32(&_count,1) ,
+		Id:   atomic.AddUint32(&_count, 1),
 		Data: data,
 	}
 }
@@ -38,10 +38,10 @@ func (a *Message) Unmarshal(buf []byte) *Message {
 }
 
 func (a *Message) String() string {
-	return fmt.Sprintf("id:%v data:%s",a.Id,a.Data)
+	return fmt.Sprintf("id:%v data:%s", a.Id, a.Data)
 }
 
-func (a *Message) debug()  {
+func (a *Message) debug() {
 	fmt.Println(a.String())
 }
 
@@ -51,18 +51,18 @@ func NewPacket() *Packet {
 	return new(Packet)
 }
 
-func (p *Packet) Write()  {
+func (p *Packet) Write() {
 
 }
 
-func (p *Packet) Read()  {
+func (p *Packet) Read() {
 
 }
 
 func (p *Packet) String() string {
-	return fmt.Sprintf("Packet: %s",*p)
+	return fmt.Sprintf("Packet: %s", *p)
 }
 
-func (p *Packet) debug()  {
+func (p *Packet) debug() {
 	fmt.Println(p.String())
 }

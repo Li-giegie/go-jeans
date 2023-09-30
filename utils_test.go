@@ -13,10 +13,10 @@ func TestPackUnpack(t *testing.T) {
 	// 10 byte
 	var data = []byte("hello word!")
 	data = Pack(data)
-	fmt.Println("Pack:",len(data), data)
+	fmt.Println("Pack:", len(data), data)
 
 	data2, err := Unpack(bytes.NewBuffer(data))
-	fmt.Println("Unpack:",err,len(data2), string(data2), data2)
+	fmt.Println("Unpack:", err, len(data2), string(data2), data2)
 }
 
 func TestPackUnpackN(t *testing.T) {
@@ -24,22 +24,22 @@ func TestPackUnpackN(t *testing.T) {
 	var data = []byte("hello word")
 	fmt.Println(len(data), data)
 	data, err := PackN(data, PacketHerderLen_16)
-	fmt.Println("Pack:",len(data), data)
+	fmt.Println("Pack:", len(data), data)
 
 	data2, err := UnpackN(bytes.NewBuffer(data), PacketHerderLen_16)
-	fmt.Println("Unpack:",err,len(data2), string(data2), data2)
+	fmt.Println("Unpack:", err, len(data2), string(data2), data2)
 }
 
 type baseType struct {
-	b bool
-	i int
-	i8 int8
+	b   bool
+	i   int
+	i8  int8
 	i16 int16
 	i32 int32
 	i64 int64
 
-	ui uint
-	ui8 uint8
+	ui   uint
+	ui8  uint8
 	ui16 uint16
 	ui32 uint32
 	ui64 uint64
@@ -52,7 +52,7 @@ type baseType struct {
 	s string
 }
 
-var bt =baseType{
+var bt = baseType{
 	b:    true,
 	i:    1,
 	i8:   2,
@@ -66,20 +66,20 @@ var bt =baseType{
 	ui64: 10,
 	f32:  11.1,
 	f64:  12.1234,
-	bs:[]byte("test[]byte"),
+	bs:   []byte("test[]byte"),
 	s:    "hello word !",
 }
 
-var btBuf,jsonBuf []byte
+var btBuf, jsonBuf []byte
 
-func init(){
+func init() {
 	var err error
-	btBuf,err = BaseTypeToBytes(bt.bs,bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.bs,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
-	if err != nil{
+	btBuf, err = BaseTypeToBytes(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.bs, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+	if err != nil {
 		log.Fatalln(err)
 	}
 
-	jsonBuf,err = json.Marshal(bt)
+	jsonBuf, err = json.Marshal(bt)
 	if err != nil {
 		log.Fatalln(err)
 		return
@@ -88,8 +88,8 @@ func init(){
 }
 
 func TestBaseTypeToBytes(t *testing.T) {
-	buf,err := BaseTypeToBytes(bt.bs,bt.i,bt.i8,bt.i16,bt.i32,bt.i64,bt.ui,bt.ui8,bt.ui16,bt.ui32,bt.ui64,bt.s,bt.b,bt.f32,bt.f64)
-	if err != nil{
+	buf, err := BaseTypeToBytes(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+	if err != nil {
 		t.Error(err)
 		return
 	}
@@ -101,7 +101,7 @@ func TestBytesToBaseType(t *testing.T) {
 	TestBaseTypeToBytes(t)
 	var bt2 baseType
 
-	err:=BytesToBaseType(btBuf,&bt2.bs,&bt2.i,&bt2.i8,&bt2.i16,&bt2.i32,&bt2.i64,&bt2.ui,&bt2.ui8,&bt2.ui16,&bt2.ui32,&bt2.ui64,&bt2.s,&bt2.b,&bt2.f32,&bt2.f64)
+	err := BytesToBaseType(btBuf, &bt2.bs, &bt2.i, &bt2.i8, &bt2.i16, &bt2.i32, &bt2.i64, &bt2.ui, &bt2.ui8, &bt2.ui16, &bt2.ui32, &bt2.ui64, &bt2.s, &bt2.b, &bt2.f32, &bt2.f64)
 	if err != nil {
 		t.Error(err)
 		return
@@ -119,10 +119,10 @@ type Address struct {
 	Street  string
 	City    string
 	Country string
-	M map[string]int
+	M       map[string]int
 }
 
-//experimental stage
+// experimental stage
 func PrintStructMembers(data interface{}) {
 	v := reflect.ValueOf(data)
 	t := v.Type()
@@ -159,10 +159,17 @@ func TestPrintStructMembers(t *testing.T) {
 			City:    "New York",
 			Country: "USA",
 			M: map[string]int{
-				"1":1,
+				"1": 1,
 			},
 		},
 	}
 
 	PrintStructMembers(person)
+}
+
+func TestPanic(t *testing.T) {
+	//var r = bytes.NewBuffer([]byte{255,255,255,255,1,2,3})
+	//buf,err := Unpack(r)
+	//fmt.Println(buf,err)
+
 }
