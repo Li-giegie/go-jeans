@@ -7,9 +7,9 @@ import (
 	"math"
 )
 
-var ErrOfBytesToBaseType_float  = errors.New("float err: of BytesToBaseType float bounds out of max or min value")
-var ErrOfBytesToBaseType_String  = errors.New("string err: of BytesToBaseType resolution length is greater than the remaining length")
-var ErrOfBytesToBaseType_SliceBytes  = errors.New("slice byte err: of BytesToBaseType  resolution length is greater than the remaining length")
+var ErrOfBytesToBaseType_float  = errors.New("float err: of Decode float bounds out of max or min value")
+var ErrOfBytesToBaseType_String  = errors.New("string err: of Decode resolution length is greater than the remaining length")
+var ErrOfBytesToBaseType_SliceBytes  = errors.New("slice byte err: of Decode  resolution length is greater than the remaining length")
 
 // BaseTypeToBytesBufferSize 定义用于存放序列化基础类型后的字节切片的缓冲区大小
 var BaseTypeToBytesBufferSize = 128

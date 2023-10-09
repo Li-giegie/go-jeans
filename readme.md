@@ -1,4 +1,4 @@
-# go-jeans 是一个序列化、反序列化、拆封二进制字节流的包.
+# go-jeans 是一个编码（序列化）、解码（反序列化）、拆封二进制字节流的包.
 
 **场景**
 - 用来解决TCP传输中 [粘包](https://blog.csdn.net/weixin_41047704/article/details/85340311) 的问题
@@ -30,7 +30,7 @@ Unpack(r io.Reader) (buf []byte, err error)
 //参数二 包头长度
 UnpackN(r io.Reader, pLen PacketHerderLenType) 
 ```
-[使用例子](example/tcp-example/server.go)
+[使用例子](example/server.go)
 
 * ### 序列化、反序列化使用
-[序列化、反序列化使用](./utils_test.go)  
+[序列化、反序列化使用](./core_test.go)  

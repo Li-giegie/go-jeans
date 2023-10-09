@@ -3,10 +3,8 @@ package go_jeans
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"log"
-	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -71,142 +69,85 @@ var bt = baseType{
 	s:    "hello word !",
 }
 
-var btBuf, jsonBuf []byte
-
-func init() {
-	var err error
-	btBuf, err = Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.bs, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	jsonBuf, err = json.Marshal(bt)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	fmt.Println("test init")
-}
-
 func TestEncode(t *testing.T) {
-	buf, err := Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	btBuf = buf
-	log.Println(buf)
+	_Encode()
 }
 
 func TestDecode(t *testing.T) {
-	var s struct{
-		A int
-		B string
-		C bool
-	}
-	buf, _ := Encode(s.A,s.B,s.C)
-	err := Decode(buf,&s.A,&s.B,&s.C)
-	if err != nil {
-		return
-	}
-	fmt.Println(s)
-}
-func TestBytesToBaseType(t *testing.T) {
-	TestEncode(t)
-	var bt2 baseType
-
-	err := Decode(btBuf, &bt2.bs, &bt2.i, &bt2.i8, &bt2.i16, &bt2.i32, &bt2.i64, &bt2.ui, &bt2.ui8, &bt2.ui16, &bt2.ui32, &bt2.ui64, &bt2.s, &bt2.b, &bt2.f32, &bt2.f64)
+	buf,err := _Encode()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	log.Println(bt2)
+	b,err := _Decode(buf)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(b)
 }
 
-type Person struct {
-	Name    string
-	Age     int
-	Address Address
+
+func _Encode() ([]byte,error){
+	buf, err := Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+	return buf,err
 }
 
-type Address struct {
-	Street  string
-	City    string
-	Country string
-	M       map[string]int
+func _Decode( buf []byte) (*baseType,error){
+	b := new(baseType)
+	err := Decode(buf, &b.bs, &b.i, &b.i8, &b.i16, &b.i32, &b.i64, &b.ui, &b.ui8, &b.ui16, &b.ui32, &b.ui64, &b.s, &b.b, &b.f32, &b.f64)
+	return b,err
 }
 
-// experimental stage
-func PrintStructMembers(data interface{}) {
-	v := reflect.ValueOf(data)
-	t := v.Type()
+var str = `commit cd4011e37162afabf4908f64b4ad9c5af16fc2f1
+Author: Li-giegie <1261930106@qq.com>
+Date:   Thu May 11 13:16:47 2023 +0800
+Please make sure you have the correct access rights
+and the repository exists.
+PS D:\_project\GO Project\go-jeans\example> git push origin master
+`
+var strList = strings.Split(str," ")
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldType := t.Field(i)
-
-		fmt.Printf("%s: ", fieldType.Name)
-
-		switch field.Kind() {
-		case reflect.Struct:
-			fmt.Println()
-			PrintStructMembers(field.Interface())
-		case reflect.Map:
-			fmt.Println()
-			keys := field.MapKeys()
-			for _, key := range keys {
-				value := field.MapIndex(key)
-				fmt.Printf("%s: %v\n", key, value)
+//BenchmarkEncodeString-12    	  732082	      1550 ns/op
+func BenchmarkEncodeString(b *testing.B) {
+	var buf = make([]byte,0,1024)
+	for i := 0; i < b.N; i++ {
+		for _, s := range strList {
+			_b,err := Encode(s)
+			if err != nil {
+				b.Error(err)
+				return
 			}
-		default:
-			fmt.Println(field.Interface())
+			buf = append(buf, _b...)
 		}
 	}
 }
 
-func TestPrintStructMembers(t *testing.T) {
-	person := Person{
-		Name: "John Doe",
-		Age:  30,
-		Address: Address{
-			Street:  "123 Main St",
-			City:    "New York",
-			Country: "USA",
-			M: map[string]int{
-				"1": 1,
-			},
-		},
-	}
-
-	PrintStructMembers(person)
+var sp = "\\SpLiT"
+func StringListPack(s []string) []byte{
+	strPack := strings.Join(s,sp)
+	buf := Pack([]byte(strPack))
+	return buf
 }
 
-func TestPanic(t *testing.T) {
+func StringListUnpack(buf []byte) []string{
+	_= binary.LittleEndian.Uint32(buf[:4])
+	return strings.Split(string(buf[4:]),sp)
+}
 
+//BenchmarkStringList-12    	 2632795	       428.1 ns/op
+func BenchmarkStringList(b *testing.B) {
+	buf := StringListPack(strList)
+	for i := 0; i < b.N; i++ {
+		StringListUnpack(buf)
+	}
+}
 
-	var ll = 100000000
-	var a = make([]int64,ll)
-	for i, _ := range a {
-		n := i
-		if (n+1) %2 == 0 {
-			n=n*-1
-		}
-		a[i] = int64(n)
-	}
-	//fmt.Println(a)
-	var resA = make([]int64,0,ll)
-	buf := make([]byte, binary.MaxVarintLen64)
-	for _, x := range a {
-		n:= binary.PutVarint(buf, x)
-		n1,_ := binary.Varint(buf[:n])
-		resA = append(resA, n1)
-	}
-	//fmt.Println(resA)
-	for i, i2 := range a {
-		if resA[i] != i2 {
-			t.Error("错误：",resA,i2)
-			return
+func TestStringList(t *testing.T) {
+	buf := StringListPack(strList)
+	sl := StringListUnpack(buf)
+	for i, s := range strList {
+		if sl[i] != s {
+			t.Error("解包失败")
 		}
 	}
-	fmt.Println("正确")
 }

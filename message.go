@@ -44,25 +44,3 @@ func (a *Message) String() string {
 func (a *Message) debug() {
 	fmt.Println(a.String())
 }
-
-type Packet []byte
-
-func NewPacket() *Packet {
-	return new(Packet)
-}
-
-func (p *Packet) Write() {
-
-}
-
-func (p *Packet) Read() {
-
-}
-
-func (p *Packet) String() string {
-	return fmt.Sprintf("Packet: %s", *p)
-}
-
-func (p *Packet) debug() {
-	fmt.Println(p.String())
-}

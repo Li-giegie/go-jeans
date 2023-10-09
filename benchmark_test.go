@@ -2,25 +2,8 @@ package go_jeans
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"testing"
 )
-
-func init() {
-	var err error
-	btBuf, err = Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	jsonBuf, err = json.Marshal(bt)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	fmt.Println("benchmark init")
-}
 
 // BenchmarkPack-12    	42299990	        26.61 ns/op
 func BenchmarkPack(b *testing.B) {
@@ -33,7 +16,7 @@ func BenchmarkPack(b *testing.B) {
 func Benchmark_Encode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
-		if err != nil {
+		if err != nil{
 			b.Error(err)
 			return
 		}
@@ -41,12 +24,16 @@ func Benchmark_Encode(b *testing.B) {
 }
 
 func Benchmark_Decode(b *testing.B) {
-	var bt2 baseType
+	buf,err:=_Encode()
+	if err != nil{
+		b.Error(err)
+		return
+	}
+	obj := new(baseType)
 	for i := 0; i < b.N; i++ {
-		err := Decode(btBuf, &bt2.bs, &bt2.i, &bt2.i8, &bt2.i16, &bt2.i32, &bt2.i64, &bt2.ui, &bt2.ui8, &bt2.ui16, &bt2.ui32, &bt2.ui64, &bt2.s, &bt2.b, &bt2.f32, &bt2.f64)
+		err = Decode(buf, &obj.bs, &obj.i, &obj.i8, &obj.i16, &obj.i32, &obj.i64, &obj.ui, &obj.ui8, &obj.ui16, &obj.ui32, &obj.ui64, &obj.s, &obj.b, &obj.f32, &obj.f64)
 		if err != nil {
 			b.Error(err)
-			return
 		}
 	}
 }
@@ -63,8 +50,13 @@ func BenchmarkMarshal_JSON(b *testing.B) {
 
 func BenchmarkUnmarshal_JSON(b *testing.B) {
 	var bt2 baseType
+	buf,err := json.Marshal(bt)
+	if err != nil {
+		b.Error(err)
+		return
+	}
 	for i := 0; i < b.N; i++ {
-		err := json.Unmarshal(jsonBuf, &bt2)
+		err := json.Unmarshal(buf, &bt2)
 		if err != nil {
 			b.Error(err)
 			return
