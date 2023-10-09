@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	go_jeans "github.com/Li-giegie/go-jeans"
-	//"fmt"
 	"log"
 	"net"
 )
@@ -31,9 +30,7 @@ func process(conn net.Conn)  {
 		if err != nil {
 			log.Fatalln(err)
 		}
-
-		fmt.Println("server receive:",string(buf),buf)
-		conn.Write(buf)
+		fmt.Println("server receive:",string(buf))
 		err = go_jeans.Write(conn,[]byte("pong pong pong ~"))
 		if err != nil {
 			log.Fatalln(err)
