@@ -9,7 +9,7 @@ import (
 
 func init() {
 	var err error
-	btBuf, err = BaseTypeToBytes(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+	btBuf, err = Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -29,10 +29,10 @@ func BenchmarkPack(b *testing.B) {
 	}
 }
 
-// go test -bench=BenchmarkBaseTypeToBytes$   -benchtime=3s .\ -cpuprofile="BenchmarkBaseTypeToBytes_CPUV1.out"
-func Benchmark_BaseTypeToBytes(b *testing.B) {
+// go test -bench=BenchmarkEncode$   -benchtime=3s .\ -cpuprofile="BenchmarkEncode_CPUV1.out"
+func Benchmark_Encode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := BaseTypeToBytes(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+		_, err := Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
 		if err != nil {
 			b.Error(err)
 			return
@@ -40,10 +40,10 @@ func Benchmark_BaseTypeToBytes(b *testing.B) {
 	}
 }
 
-func Benchmark_BytesToBaseType(b *testing.B) {
+func Benchmark_Decode(b *testing.B) {
 	var bt2 baseType
 	for i := 0; i < b.N; i++ {
-		err := BytesToBaseType(btBuf, &bt2.bs, &bt2.i, &bt2.i8, &bt2.i16, &bt2.i32, &bt2.i64, &bt2.ui, &bt2.ui8, &bt2.ui16, &bt2.ui32, &bt2.ui64, &bt2.s, &bt2.b, &bt2.f32, &bt2.f64)
+		err := Decode(btBuf, &bt2.bs, &bt2.i, &bt2.i8, &bt2.i16, &bt2.i32, &bt2.i64, &bt2.ui, &bt2.ui8, &bt2.ui16, &bt2.ui32, &bt2.ui64, &bt2.s, &bt2.b, &bt2.f32, &bt2.f64)
 		if err != nil {
 			b.Error(err)
 			return

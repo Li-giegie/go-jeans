@@ -30,7 +30,7 @@ Unpack(r io.Reader) (buf []byte, err error)
 //参数二 包头长度
 UnpackN(r io.Reader, pLen PacketHerderLenType) 
 ```
-[使用例子](./example/tcp-demo/server.go)
+[使用例子](example/tcp-example/server.go)
 
 * ### 序列化、反序列化使用
 [序列化、反序列化使用](./utils_test.go)  

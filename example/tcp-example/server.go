@@ -8,8 +8,8 @@ import (
 	"net"
 )
 
-func server()  {
-	lis,err := net.Listen("tcp","127.0.0.1:9999")
+func server(addr string)  {
+	lis,err := net.Listen("tcp",addr)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -20,23 +20,21 @@ func server()  {
 			log.Println("accept err :",err)
 			continue
 		}
-		
-		go process(&conn)
+		go process(conn)
 	}
 }
 
-func process(conn *net.Conn)  {
-	defer (*conn).Close()
+func process(conn net.Conn)  {
+	defer (conn).Close()
 	for  {
-		buf,err := go_jeans.Read(*conn)
+		buf,err := go_jeans.Read(conn)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if string(buf) == "exit" {
-			log.Fatalln("bye ~")
-		}
-		fmt.Println("server receive:",string(buf))
-		err = go_jeans.Write(*conn,[]byte("pong pong pong ~"))
+
+		fmt.Println("server receive:",string(buf),buf)
+		conn.Write(buf)
+		err = go_jeans.Write(conn,[]byte("pong pong pong ~"))
 		if err != nil {
 			log.Fatalln(err)
 		}

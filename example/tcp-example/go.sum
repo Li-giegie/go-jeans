@@ -1,9 +1,5 @@
-github.com/Li-giegie/go-jeans v0.0.0-20230519052111-c48db30c3acd h1:Ptw0mOVXM184RCmjHCoBBBmt/zFPjo3vEvbUa0KqU+Q=
-github.com/Li-giegie/go-jeans v0.0.0-20230519052111-c48db30c3acd/go.mod h1:HiT6CPCKwYQT1YQj55vvAQ+PXPLg2+by6PlAu8duiuU=
-github.com/Li-giegie/go-jeans v0.0.0-20230519053921-37bf911fd126 h1:b2kNiqdgNqCsEqpu4cOuDskpFny2IcTd892ILGxw3DA=
-github.com/Li-giegie/go-jeans v0.0.0-20230519053921-37bf911fd126/go.mod h1:HiT6CPCKwYQT1YQj55vvAQ+PXPLg2+by6PlAu8duiuU=
-github.com/Li-giegie/go-jeans v0.0.0-20230519054941-77bf2cbb506a h1:33LK4sC0AkUsZqFTEwh69MsJGQtLnSic4CfMAkAb930=
-github.com/Li-giegie/go-jeans v0.0.0-20230519054941-77bf2cbb506a/go.mod h1:HiT6CPCKwYQT1YQj55vvAQ+PXPLg2+by6PlAu8duiuU=
+github.com/Li-giegie/go-jeans v1.0.0 h1:7v6q2bbi1gbRFycFOFq65aoSgqrGr18RE1Mgv2nmk8E=
+github.com/Li-giegie/go-jeans v1.0.0/go.mod h1:HiT6CPCKwYQT1YQj55vvAQ+PXPLg2+by6PlAu8duiuU=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
