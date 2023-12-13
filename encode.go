@@ -2,7 +2,6 @@ package go_jeans
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"math"
 	"unsafe"
@@ -91,7 +90,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 				buf = append(buf, 0)
 			}
 		default:
-			return nil, errors.New("conversion of this type is not supported")
+			return nil, fmt.Errorf("err: [%T] unsupported type", v)
 		}
 	}
 
@@ -183,7 +182,7 @@ func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, er
 			}
 			itemLen = append(itemLen, 1)
 		default:
-			return nil, nil, errors.New("conversion of this type is not supported")
+			return nil, nil, fmt.Errorf("err: [%T] unsupported type", v)
 		}
 	}
 
@@ -203,7 +202,7 @@ func EncodeSlice(slice ...interface{}) ([]byte, error) {
 				binary.LittleEndian.PutUint32(buf[len(buf)-4:], v)
 			}
 		default:
-			return nil, fmt.Errorf("[%T] conversion of this type is not supported", sv)
+			return nil, fmt.Errorf("err: [%T] unsupported type", sv)
 		}
 	}
 	return buf, nil

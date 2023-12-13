@@ -33,4 +33,4 @@ UnpackN(r io.Reader, pLen PacketHerderLenType)
 [使用例子](example/server.go)
 
 * ### 序列化、反序列化使用
-[序列化、反序列化使用](./core_test.go)  
+[序列化、反序列化使用](./utils_test.go)  
