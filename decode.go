@@ -2,7 +2,6 @@ package go_jeans
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"math"
 	"unsafe"
@@ -98,7 +97,7 @@ func Decode(buf []byte, args ...interface{}) error {
 			*v = math.Float64frombits(n)
 			index += 8
 		default:
-			return errors.New("conversion of this type is not supported")
+			return fmt.Errorf("decode err: [%T] unsupported type", v)
 		}
 
 	}
@@ -120,7 +119,7 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 			}
 			*sv = tmp
 		default:
-			return fmt.Errorf("[%T] conversion of this type is not supported", sv)
+			return fmt.Errorf("decodeSlice err: [%T] unsupported type", sv)
 		}
 	}
 	return nil
