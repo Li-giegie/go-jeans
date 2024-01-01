@@ -2,9 +2,7 @@ package go_jeans
 
 import (
 	"bytes"
-	"reflect"
 	"testing"
-	"unsafe"
 )
 
 func TestPackUnpack(t *testing.T) {
@@ -19,12 +17,12 @@ func TestPackUnpack(t *testing.T) {
 
 func TestPackUnpackN(t *testing.T) {
 	var data = []byte("hello word")
-	data, err := PackN(data, PacketHerderLen_16)
+	data, err := PackN(data, PacketHerderLenType_uint16)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	_, err = UnpackN(bytes.NewBuffer(data), PacketHerderLen_16)
+	_, err = UnpackN(bytes.NewBuffer(data), PacketHerderLenType_uint16)
 	if err != nil {
 		t.Error(err)
 		return
@@ -147,25 +145,4 @@ func _Decode(buf []byte) (*baseType, error) {
 	b := new(baseType)
 	err := Decode(buf, &b.bs, &b.i, &b.i8, &b.i16, &b.i32, &b.i64, &b.ui, &b.ui8, &b.ui16, &b.ui32, &b.ui64, &b.s, &b.b, &b.f32, &b.f64)
 	return b, err
-}
-
-func Sbyte2str(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-func Str2sbyte(s string) []byte {
-	var b []byte
-	*(*string)(unsafe.Pointer(&b)) = s
-	*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&b)) + 2*unsafe.Sizeof(&b))) = len(s)
-	return b
-}
-
-func String2Bytes(s string) []byte {
-	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	bh := reflect.SliceHeader{
-		Data: sh.Data,
-		Len:  sh.Len,
-		Cap:  sh.Len,
-	}
-	return *(*[]byte)(unsafe.Pointer(&bh))
 }

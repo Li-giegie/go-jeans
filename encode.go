@@ -23,7 +23,7 @@ import (
 //		fmt.Println(buf)
 //	}
 func Encode(args ...interface{}) ([]byte, error) {
-	var buf = make([]byte, 0, BaseTypeToBytesBufferSize)
+	var buf = make([]byte, 0, SliceBufferSize)
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case string:
@@ -99,7 +99,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 
 // 同Encode相同，不同的是每当解码一个字段时会记录其长度，方便在内容发生变化后不重新编码的情况下修改
 func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, err error) {
-	buf = make([]byte, 0, BaseTypeToBytesBufferSize)
+	buf = make([]byte, 0, SliceBufferSize)
 	itemLen = make([]int32, 0, len(args))
 	for _, arg := range args {
 		switch v := arg.(type) {
@@ -191,7 +191,7 @@ func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, er
 
 // EncodeSlice 将入参切片编码：支持列表[[]uint32]
 func EncodeSlice(slice ...interface{}) ([]byte, error) {
-	var buf = make([]byte, 0, BaseTypeToBytesBufferSize)
+	var buf = make([]byte, 0, SliceBufferSize)
 	for _, item := range slice {
 		switch sv := item.(type) {
 		case []uint32:
