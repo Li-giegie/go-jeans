@@ -30,6 +30,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 			var hl = make([]byte, 4)
 			binary.LittleEndian.PutUint32(hl, uint32(len(v)))
 			var tmpBuffer []byte
+
 			*(*string)(unsafe.Pointer(&tmpBuffer)) = v
 			*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(v)
 			buf = append(buf, hl...)
