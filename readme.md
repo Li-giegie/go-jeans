@@ -46,9 +46,10 @@ func TestDecode(t *testing.T) {
 }
 ```
 ### 注意事项
-编解码支持的类型仅为Go中的基本类型：int、int8~int64、uint、uint8~uint64、bool、string、float32~64、byte、[]byte(比较常用)，后续考录支持更多的类似
+编解码支持的类型仅为Go中的基本类型：int、int8 ~ int64、uint、uint8 ~ uint64、bool、string、float32~64、byte、[]byte(比较常用)，后续考录支持更多的类似
 
 [Encode 编码|序列化：](#) 入参必须为Go中的基本类型，如果确认入参全部被支持，可忽略错误，如果出现错误会返回入参的顺序，例如如果s.A不被支持即返回信息中包含index 0
+
 [Decode 解码|反序列化：](#) 入参必须为Go中的<span style="color: pink">指针基本类型</span>，如果不是指针返回错误，编码的顺序和解码的顺序需要保持一致，可参考使用方法中的示例
 
 ### TODO
