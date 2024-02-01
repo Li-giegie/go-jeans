@@ -31,14 +31,36 @@ func BenchmarkPack(b *testing.B) {
 // goarch: amd64
 // pkg: github.com/Li-giegie/go-jeans
 // cpu: AMD Ryzen 5 5600H with Radeon Graphics
-// Benchmark_Encode         6026086               205.0 ns/op           208 B/op          8 allocs/op
-// Benchmark_Encode         6015932               201.9 ns/op           208 B/op          8 allocs/op
-// Benchmark_Encode         6086074               202.3 ns/op           208 B/op          8 allocs/op
-// Benchmark_Encode         5853458               205.8 ns/op           208 B/op          8 allocs/op
-// Benchmark_Encode         5849061               200.4 ns/op           208 B/op          8 allocs/op
+// Benchmark_Encode        13686333                88.77 ns/op          128 B/op          1 allocs/op
+// Benchmark_Encode        13080744                85.38 ns/op          128 B/op          1 allocs/op
+// Benchmark_Encode        13990644                84.85 ns/op          128 B/op          1 allocs/op
+// Benchmark_Encode        14046850                85.49 ns/op          128 B/op          1 allocs/op
+// Benchmark_Encode        13442229                85.74 ns/op          128 B/op          1 allocs/op
 func Benchmark_Encode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Encode(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
+
+// go test -run=none -bench=Benchmark_EncodeV2$ -count 5 -cpu 1 -benchmem
+// goos: windows
+// goarch: amd64
+// pkg: github.com/Li-giegie/go-jeans
+// cpu: AMD Ryzen 5 5600H with Radeon Graphics
+// Benchmark_EncodeV2      26887321                45.09 ns/op            0 B/op          0 allocs/op
+// Benchmark_EncodeV2      27020880                44.07 ns/op            0 B/op          0 allocs/op
+// Benchmark_EncodeV2      25414467                44.70 ns/op            0 B/op          0 allocs/op
+// Benchmark_EncodeV2      27692456                45.06 ns/op            0 B/op          0 allocs/op
+// Benchmark_EncodeV2      26919228                44.02 ns/op            0 B/op          0 allocs/op
+func Benchmark_EncodeV2(b *testing.B) {
+	var buf = make([]byte, 0, 128)
+	var err error
+	for i := 0; i < b.N; i++ {
+		_, err = EncodeV2(buf, bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
 		if err != nil {
 			b.Error(err)
 			return
@@ -85,6 +107,31 @@ func Benchmark_Decode(b *testing.B) {
 	obj := new(baseType)
 	for i := 0; i < b.N; i++ {
 		err = Decode(buf, &obj.bs, &obj.i, &obj.i8, &obj.i16, &obj.i32, &obj.i64, &obj.ui, &obj.ui8, &obj.ui16, &obj.ui32, &obj.ui64, &obj.s, &obj.b, &obj.f32, &obj.f64)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+// go test -run=none -bench=Benchmark_DecodeV2$ -count 5 -cpu 1 -benchmem
+// goos: windows
+// goarch: amd64
+// pkg: github.com/Li-giegie/go-jeans
+// cpu: AMD Ryzen 5 5600H with Radeon Graphics
+// Benchmark_DecodeV2      34651234                34.31 ns/op            0 B/op          0 allocs/op
+// Benchmark_DecodeV2      34010134                34.91 ns/op            0 B/op          0 allocs/op
+// Benchmark_DecodeV2      35162773                34.61 ns/op            0 B/op          0 allocs/op
+// Benchmark_DecodeV2      35196394                34.15 ns/op            0 B/op          0 allocs/op
+// Benchmark_DecodeV2      35161228                34.17 ns/op            0 B/op          0 allocs/op
+func Benchmark_DecodeV2(b *testing.B) {
+	buf, err := _Encode()
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	obj := new(baseType)
+	for i := 0; i < b.N; i++ {
+		err = DecodeV2(buf, &obj.bs, &obj.i, &obj.i8, &obj.i16, &obj.i32, &obj.i64, &obj.ui, &obj.ui8, &obj.ui16, &obj.ui32, &obj.ui64, &obj.s, &obj.b, &obj.f32, &obj.f64)
 		if err != nil {
 			b.Error(err)
 		}
@@ -224,6 +271,16 @@ func BenchmarkUnmarshal_ProtoBuf(b *testing.B) {
 		err = proto.Unmarshal(buf, &tmp)
 		if err != nil {
 			b.Error(err)
+			return
+		}
+	}
+}
+
+func BenchmarkCountLength(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		n, err := countLength(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+		if err != nil {
+			b.Error(err, n)
 			return
 		}
 	}

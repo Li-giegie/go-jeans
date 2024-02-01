@@ -2,10 +2,60 @@ package go_jeans
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"math"
+	"strconv"
 	"unsafe"
 )
+
+func EncodeV2(buf []byte, args ...interface{}) ([]byte, error) {
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			var tmpBuffer []byte
+			*(*string)(unsafe.Pointer(&tmpBuffer)) = v
+			*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(v)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(len(v)))
+			buf = append(buf, tmpBuffer...)
+		case int:
+			buf = binary.LittleEndian.AppendUint64(buf, uint64(v))
+		case []byte:
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(len(v)))
+			buf = append(buf, v...)
+		case int8:
+			buf = append(buf, uint8(v))
+		case int16:
+			buf = binary.LittleEndian.AppendUint16(buf, uint16(v))
+		case int32:
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(v))
+		case int64:
+			buf = binary.LittleEndian.AppendUint64(buf, uint64(v))
+		case uint:
+			buf = binary.LittleEndian.AppendUint64(buf, uint64(v))
+		case uint8:
+			buf = append(buf, []byte{v}...)
+		case uint16:
+			buf = binary.LittleEndian.AppendUint16(buf, v)
+		case uint32:
+			buf = binary.LittleEndian.AppendUint32(buf, v)
+		case uint64:
+			buf = binary.LittleEndian.AppendUint64(buf, v)
+		case float32:
+			buf = binary.LittleEndian.AppendUint32(buf, math.Float32bits(v))
+		case float64:
+			buf = binary.LittleEndian.AppendUint64(buf, math.Float64bits(v))
+		case bool:
+			if v {
+				buf = append(buf, 1)
+				continue
+			}
+			buf = append(buf, 0)
+		default:
+			return nil, encodeError(i)
+		}
+	}
+	return buf, nil
+}
 
 // Encode 将go中的基本值类型进行编码，编码的参数和解码的参数顺序必须一致，只有在传递的类型不支持时会返回错误，其他情况不会，注意这一步并不打包返回的切片
 //
@@ -24,13 +74,12 @@ import (
 //	}
 func Encode(args ...interface{}) ([]byte, error) {
 	var buf = make([]byte, 0, SliceBufferSize)
-	for _, arg := range args {
-		switch v := arg.(type) {
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
 		case string:
 			var hl = make([]byte, 4)
 			binary.LittleEndian.PutUint32(hl, uint32(len(v)))
 			var tmpBuffer []byte
-
 			*(*string)(unsafe.Pointer(&tmpBuffer)) = v
 			*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(v)
 			buf = append(buf, hl...)
@@ -91,7 +140,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 				buf = append(buf, 0)
 			}
 		default:
-			return nil, fmt.Errorf("encode err: [%T] unsupported type", v)
+			return nil, encodeError(i)
 		}
 	}
 
@@ -102,7 +151,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, err error) {
 	buf = make([]byte, 0, SliceBufferSize)
 	itemLen = make([]int32, 0, len(args))
-	for _, arg := range args {
+	for index, arg := range args {
 		switch v := arg.(type) {
 		case string:
 			var hl = make([]byte, 4)
@@ -183,7 +232,7 @@ func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, er
 			}
 			itemLen = append(itemLen, 1)
 		default:
-			return nil, nil, fmt.Errorf("encodeWithLenByteItem err: [%T] unsupported type", v)
+			return nil, nil, encodeError(index)
 		}
 	}
 
@@ -193,7 +242,7 @@ func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, er
 // EncodeSlice 将入参切片编码：支持列表[[]uint32]
 func EncodeSlice(slice ...interface{}) ([]byte, error) {
 	var buf = make([]byte, 0, SliceBufferSize)
-	for _, item := range slice {
+	for index, item := range slice {
 		switch sv := item.(type) {
 		case []uint32:
 			buf = append(buf, []byte{0, 0, 0, 0}...)
@@ -203,8 +252,12 @@ func EncodeSlice(slice ...interface{}) ([]byte, error) {
 				binary.LittleEndian.PutUint32(buf[len(buf)-4:], v)
 			}
 		default:
-			return nil, fmt.Errorf("encodeSlice err: [%T] unsupported type", sv)
+			return nil, encodeError(index)
 		}
 	}
 	return buf, nil
+}
+
+func encodeError(i int) error {
+	return errors.New("encode err: index [" + strconv.Itoa(i) + "] unsupported type ")
 }

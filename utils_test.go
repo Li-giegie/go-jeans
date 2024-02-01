@@ -2,6 +2,8 @@ package go_jeans
 
 import (
 	"bytes"
+	"encoding/binary"
+	"fmt"
 	"testing"
 )
 
@@ -145,4 +147,9 @@ func _Decode(buf []byte) (*baseType, error) {
 	b := new(baseType)
 	err := Decode(buf, &b.bs, &b.i, &b.i8, &b.i16, &b.i32, &b.i64, &b.ui, &b.ui8, &b.ui16, &b.ui32, &b.ui64, &b.s, &b.b, &b.f32, &b.f64)
 	return b, err
+}
+
+func TestAA(t *testing.T) {
+	fmt.Println(binary.LittleEndian.AppendUint32([]byte{1, 2, 3}, 3))
+
 }
