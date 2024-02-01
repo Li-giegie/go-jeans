@@ -3,7 +3,6 @@ package go_jeans
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"math"
 )
@@ -12,14 +11,11 @@ var ErrOfBytesToBaseType_float = errors.New("float err: of Decode float bounds o
 var ErrOfBytesToBaseType_String = errors.New("string err: of Decode resolution length is greater than the remaining length")
 var ErrOfBytesToBaseType_SliceBytes = errors.New("slice byte err: of Decode  resolution length is greater than the remaining length")
 
-// BaseTypeToBytesBufferSize 定义用于存放序列化基础类型后的字节切片的缓冲区大小
-var SliceBufferSize = 128
-
 // PacketHerderLenType 头长度
 type PacketHerderLenType uint8
 
 const (
-	PacketHerderLenType_uint16 = iota
+	PacketHerderLenType_uint16 PacketHerderLenType = iota
 	PacketHerderLenType_uint32
 	PacketHerderLenType_uint64
 )
@@ -30,6 +26,8 @@ func Pack(buf []byte) []byte {
 	binary.LittleEndian.PutUint32(hl, uint32(len(buf)))
 	return append(hl, buf...)
 }
+
+var PacketHerderLenErr = errors.New("invalid PacketHerderLenType")
 
 // PackN 将一个字节切片重新封装成：自定义长度长度（plen（入参））+ +buf，的新buf（数据包）
 func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
@@ -54,7 +52,7 @@ func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
 		bufBinayLen = make([]byte, 8)
 		binary.LittleEndian.PutUint64(bufBinayLen, uint64(len(buf)))
 	default:
-		panic(fmt.Sprintf("unsupported length: %v", pLen))
+		return nil, PacketHerderLenErr
 	}
 
 	return append(bufBinayLen, buf...), nil
@@ -96,7 +94,7 @@ func UnpackN(r io.Reader, pLen PacketHerderLenType) (buf []byte, err error) {
 		}
 		packHeaderLen = binary.LittleEndian.Uint64(lenBuf)
 	default:
-		panic(fmt.Sprintf("unsupported length: %v", pLen))
+		return nil, PacketHerderLenErr
 	}
 	return read(r, packHeaderLen)
 }

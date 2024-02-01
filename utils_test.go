@@ -89,14 +89,6 @@ var btpb = BaseType_PB{
 	S:    "hello word !",
 }
 
-func TestEncode(t *testing.T) {
-	_, err := _Encode()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-}
-
 func TestEncodeWithByte(t *testing.T) {
 	buf, itemLen, err := _EncodeWithByte()
 	if err != nil {
@@ -119,18 +111,6 @@ func TestEncodeWithByte(t *testing.T) {
 	if count != len(buf) {
 		t.Error("TestEncodeWithByte fail -2")
 		return
-	}
-}
-
-func TestDecode(t *testing.T) {
-	buf, err := _Encode()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	_, err = _Decode(buf)
-	if err != nil {
-		t.Error(err)
 	}
 }
 

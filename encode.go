@@ -8,6 +8,8 @@ import (
 	"unsafe"
 )
 
+var BufferSize = 128
+
 func EncodeV2(buf []byte, args ...interface{}) ([]byte, error) {
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
@@ -73,7 +75,7 @@ func EncodeV2(buf []byte, args ...interface{}) ([]byte, error) {
 //		fmt.Println(buf)
 //	}
 func Encode(args ...interface{}) ([]byte, error) {
-	var buf = make([]byte, 0, SliceBufferSize)
+	var buf = make([]byte, 0, BufferSize)
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
 		case string:
@@ -143,13 +145,13 @@ func Encode(args ...interface{}) ([]byte, error) {
 			return nil, encodeError(i)
 		}
 	}
-
+	BufferSize = len(buf)
 	return buf, nil
 }
 
 // 同Encode相同，不同的是每当解码一个字段时会记录其长度，方便在内容发生变化后不重新编码的情况下修改
 func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, err error) {
-	buf = make([]byte, 0, SliceBufferSize)
+	buf = make([]byte, 0, BufferSize)
 	itemLen = make([]int32, 0, len(args))
 	for index, arg := range args {
 		switch v := arg.(type) {
@@ -241,7 +243,7 @@ func EncodeWithLenByteItem(args ...interface{}) (buf []byte, itemLen []int32, er
 
 // EncodeSlice 将入参切片编码：支持列表[[]uint32]
 func EncodeSlice(slice ...interface{}) ([]byte, error) {
-	var buf = make([]byte, 0, SliceBufferSize)
+	var buf = make([]byte, 0, BufferSize)
 	for index, item := range slice {
 		switch sv := item.(type) {
 		case []uint32:
