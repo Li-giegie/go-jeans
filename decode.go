@@ -203,7 +203,13 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 	return nil
 }
 
-func countLength(args ...interface{}) (length int, err error) {
+// CountLength 统计字段的长度，可用于定义缓冲区容量
+// 例如：
+// var a,b,c string
+// n,_ := CountLength(a,b,c)
+// buf := make([]byte,0,n)
+// buf,_= EncodeV2(buf,a,b,c)
+func CountLength(args ...interface{}) (length int, err error) {
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
 		case string:
@@ -224,6 +230,7 @@ func countLength(args ...interface{}) (length int, err error) {
 	}
 	return
 }
+
 func decodeError(i int) error {
 	return errors.New("decode err: index is " + strconv.Itoa(i) + "unsupported type ")
 }

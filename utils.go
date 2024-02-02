@@ -104,3 +104,27 @@ func read(r io.Reader, length uint64) ([]byte, error) {
 	_, err := io.ReadFull(r, tmp)
 	return tmp, err
 }
+
+// IsEncodeSupper 是否支持编码 返回值 > -1 表示又不支持的字段
+func IsEncodeSupper(args ...interface{}) (index int) {
+	for i := 0; i < len(args); i++ {
+		switch args[i].(type) {
+		case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
+		default:
+			return i
+		}
+	}
+	return -1
+}
+
+// IsEncodeSliceSupper 用于判断切片是否支持编码 返回值 > -1 表示又不支持的字段
+func IsEncodeSliceSupper(args ...interface{}) (index int) {
+	for i := 0; i < len(args); i++ {
+		switch args[i].(type) {
+		case []uint32:
+		default:
+			return i
+		}
+	}
+	return -1
+}

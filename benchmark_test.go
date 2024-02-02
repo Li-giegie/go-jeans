@@ -278,7 +278,7 @@ func BenchmarkUnmarshal_ProtoBuf(b *testing.B) {
 
 func BenchmarkCountLength(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		n, err := countLength(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
+		n, err := CountLength(bt.bs, bt.i, bt.i8, bt.i16, bt.i32, bt.i64, bt.ui, bt.ui8, bt.ui16, bt.ui32, bt.ui64, bt.s, bt.b, bt.f32, bt.f64)
 		if err != nil {
 			b.Error(err, n)
 			return
