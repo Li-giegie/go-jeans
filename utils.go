@@ -3,6 +3,7 @@ package go_jeans
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 )
@@ -105,26 +106,54 @@ func read(r io.Reader, length uint64) ([]byte, error) {
 	return tmp, err
 }
 
-// IsEncodeSupper 是否支持编码 返回值 > -1 表示又不支持的字段
-func IsEncodeSupper(args ...interface{}) (index int) {
+// CheckField 是否支持编码 返回值 > -1 表示又不支持的字段
+func CheckField(args ...interface{}) (index int, err error) {
 	for i := 0; i < len(args); i++ {
-		switch args[i].(type) {
+		switch t := args[i].(type) {
 		case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
 		default:
-			return i
+			return i, fmt.Errorf("field type: %T val: %v nonsupport", t, t)
 		}
 	}
-	return -1
+	return -1, nil
 }
 
-// IsEncodeSliceSupper 用于判断切片是否支持编码 返回值 > -1 表示又不支持的字段
-func IsEncodeSliceSupper(args ...interface{}) (index int) {
+// CheckFieldSlice 用于判断切片是否支持编码 返回值 > -1 表示又不支持的字段
+func CheckFieldSlice(args ...interface{}) (index int, err error) {
 	for i := 0; i < len(args); i++ {
-		switch args[i].(type) {
+		switch t := args[i].(type) {
 		case []uint32:
 		default:
-			return i
+			return i, fmt.Errorf("field type: %T val: %v nonsupport", t, t)
 		}
 	}
-	return -1
+	return -1, nil
+}
+
+// CountLength 统计字段的长度，可用于定义缓冲区容量
+// 例如：
+// var a,b,c string
+// n,_ := CountLength(a,b,c)
+// buf := make([]byte,0,n)
+// buf,_= EncodeV2(buf,a,b,c)
+func CountLength(args ...interface{}) (length int) {
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			length += 4 + len(v)
+		case []byte:
+			length += 4 + len(v)
+		case int8, uint8, bool:
+			length++
+		case int16, uint16:
+			length += 2
+		case int32, uint32, float32:
+			length += 4
+		case int, uint, int64, uint64, float64:
+			length += 8
+		default:
+			panic("field nonsupport Call the CheckField or CheckFieldSlice function to get details")
+		}
+	}
+	return
 }

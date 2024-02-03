@@ -8,6 +8,18 @@ go-jeans是一个快速的序列化、反序列化库，是出于替代手动封
 - 堪比手动封装
 - 仅支持Go中的基本数据类型和字节切片
 
+### Benchmark测试
+数据来自我的联想笔记本电脑
+```
+go test -run=none -cpu 1 -benchmem -bench=Benchmark
+goos: windows
+goarch: amd64
+pkg: github.com/Li-giegie/go-jeans
+cpu: AMD Ryzen 5 5600H with Radeon Graphics
+```
+
+![](./benchmark.png)
+
 ### 下载安装
 ``` 
 go get -u github.com/Li-giegie/go-jeans
@@ -43,6 +55,46 @@ func TestDecode(t *testing.T) {
         return
     }
     fmt.Println(s)
+}
+
+// 快速编码
+func TestEncodeFaster(t *testing.T) {
+    type base struct {
+        I  int
+        Ui uint
+        Bo bool
+        B  byte
+        Bs []byte
+        S  string
+    }
+    var encodeBase = new(base)
+    //伪造数据
+    err := faker.FakeData(encodeBase)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    // 1.创建一个缓冲切片，容量我们要预估一下，尽量不要让内存不够多次分配会占用可观的性能
+    // 结构体中变量的大概占用大小，处了[]byte、string外其他的内存占用是确定的，[]byte、string处了本身的长度外还包活一个长度字段占4个字节，只有知道长度信息才能够还原
+    bufCap := 8 + 8 + 1 + 1 + (4 + 100) + (4 + 100)
+    // 切片的长度一定是0，容量是我们预估的,CountLength()函数可以计算容量
+    buf := make([]byte, 0, bufCap)
+    buf, err = EncodeFaster(buf, encodeBase.I, encodeBase.Ui, encodeBase.B, encodeBase.Bs, encodeBase.Bo, encodeBase.S)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    // 解码验证
+    decodeBase := new(base)
+    if err = Decode(buf, &decodeBase.I, &decodeBase.Ui, &decodeBase.B, &decodeBase.Bs, &decodeBase.Bo, &decodeBase.S); err != nil {
+        t.Error(err)
+        return
+    }
+    if !reflect.DeepEqual(encodeBase, decodeBase) {
+        t.Error("decode fail")
+        return
+    }
+    fmt.Printf("encodeBase: %v \ndecodeBase: %v\n", encodeBase, decodeBase)
 }
 ```
 ### 注意事项

@@ -1,0 +1,128 @@
+package go_jeans
+
+import (
+	"fmt"
+	faker "github.com/bxcodec/faker/v3"
+	"reflect"
+	"testing"
+)
+
+type Base struct {
+	I    int
+	I8   int8
+	I16  int16
+	I32  int32
+	I64  int64
+	Ui   uint
+	Ui8  uint8
+	Ui16 uint16
+	Ui32 uint32
+	Ui64 uint64
+	Bo   bool
+	F32  float32
+	F64  float64
+	B    byte
+	Bs   []byte
+	S    string
+}
+
+func (b *Base) FieldNum() int {
+	return 16
+}
+
+func (b *Base) FieldsToInterface() []interface{} {
+	return []interface{}{
+		b.I, b.I8, b.I16, b.I32, b.I64,
+		b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64,
+		b.Bo, b.B, b.Bs,
+		b.F32, b.F64,
+		b.S,
+	}
+}
+
+func (b *Base) FieldsPointerToInterface() []interface{} {
+	return []interface{}{
+		&b.I, &b.I8, &b.I16, &b.I32, &b.I64,
+		&b.Ui, &b.Ui8, &b.Ui16, &b.Ui32, &b.Ui64,
+		&b.Bo, &b.B, &b.Bs,
+		&b.F32, &b.F64,
+		&b.S,
+	}
+}
+
+func NewBase() *Base {
+	var b = new(Base)
+	if err := faker.FakeData(b); err != nil {
+		panic(err)
+	}
+	b.I *= -1
+	b.I8 *= -1
+	b.I16 *= -1
+	b.I32 *= -1
+	b.I64 *= -1
+	return b
+}
+
+func TestEncode(t *testing.T) {
+	base := NewBase()
+	result, err := Encode(base.FieldsToInterface()...)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var decodeBase = new(Base)
+	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if !reflect.DeepEqual(base, decodeBase) {
+		t.Error("DeepEqual fail")
+		return
+	}
+	fmt.Println(base, decodeBase)
+}
+
+func TestEncodeFaster(t *testing.T) {
+	var buf = make([]byte, 0, 89)
+	base := NewBase()
+	result, err := EncodeFaster(buf, base.FieldsToInterface()...)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var decodeBase = new(Base)
+	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if !reflect.DeepEqual(base, decodeBase) {
+		t.Error("DeepEqual fail")
+		return
+	}
+	fmt.Println(base, decodeBase)
+}
+
+func TestEncodeSlice(t *testing.T) {
+	var Ui32s []uint32
+	if err := faker.FakeData(&Ui32s); err != nil {
+		t.Error(err)
+		return
+	}
+	buf, err := EncodeSlice(Ui32s)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var decodeUi32s []uint32
+	if err = DecodeSlice(buf, &decodeUi32s); err != nil {
+		t.Error(err)
+		return
+	}
+	if !reflect.DeepEqual(Ui32s, decodeUi32s) {
+		t.Error("DeepEqual fail")
+		return
+	}
+	fmt.Println(Ui32s, decodeUi32s)
+}
