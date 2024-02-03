@@ -8,18 +8,6 @@ go-jeans是一个快速的序列化、反序列化库，是出于替代手动封
 - 堪比手动封装
 - 仅支持Go中的基本数据类型和字节切片
 
-### Benchmark测试
-数据来自我的联想笔记本电脑
-```
-go test -run=none -cpu 1 -benchmem -bench=Benchmark
-goos: windows
-goarch: amd64
-pkg: github.com/Li-giegie/go-jeans
-cpu: AMD Ryzen 5 5600H with Radeon Graphics
-```
-
-<img src="./benchmark.png" alt="benchmark.png">
-
 ### 下载安装
 ``` 
 go get -u github.com/Li-giegie/go-jeans
@@ -111,3 +99,28 @@ func TestEncodeFaster(t *testing.T) {
 
 支持更多类型
 
+### Benchmark测试
+数据来自我的联想笔记本电脑
+```
+go test -run=none -cpu 1 -benchmem -bench=Benchmark
+goos: windows
+goarch: amd64
+pkg: github.com/Li-giegie/go-jeans
+cpu: AMD Ryzen 5 5600H with Radeon Graphics
+BenchmarkEncode                         12100116               101.4 ns/op           176 B/op          1 allocs/op
+BenchmarkDecode                         32333073                36.67 ns/op            0 B/op          0 allocs/op
+BenchmarkEncodeAndDecode                 7679233               149.2 ns/op           128 B/op          1 allocs/op
+BenchmarkEncodeFaster                   20996823                52.05 ns/op            0 B/op          0 allocs/op
+BenchmarkJsonMarshal                     1348072               994.1 ns/op           448 B/op          2 allocs/op
+BenchmarkJsonUnmarshal                    287700              5054 ns/op             408 B/op         18 allocs/op
+BenchmarkJsonMarshalAndUnmarshal          236295              5114 ns/op             888 B/op         21 allocs/op
+BenchmarkProtoBufMarshal                 5213646               238.8 ns/op            80 B/op          1 allocs/op
+BenchmarkProtoBufUnmarshal               4922341               247.2 ns/op            80 B/op          2 allocs/op
+BenchmarkProtoBufMarshalAndUnmarshal     1991695               579.8 ns/op           384 B/op          4 allocs/op
+BenchmarkMsgPackMarshal                  1504008               803.2 ns/op           496 B/op          4 allocs/op
+BenchmarkMsgPackUnmarshal                1000000              1188 ns/op              80 B/op          2 allocs/op
+BenchmarkGobEncode                       2202207               459.9 ns/op           304 B/op          0 allocs/op
+BenchmarkGobDecode                         52582             22945 ns/op            8672 B/op        253 allocs/op
+```
+
+<img src="./benchmark.png" alt="benchmark.png">
