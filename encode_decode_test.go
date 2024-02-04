@@ -2,7 +2,6 @@ package go_jeans
 
 import (
 	"fmt"
-	faker "github.com/bxcodec/faker/v3"
 	"reflect"
 	"testing"
 )
@@ -51,16 +50,24 @@ func (b *Base) FieldsPointerToInterface() []interface{} {
 }
 
 func NewBase() *Base {
-	var b = new(Base)
-	if err := faker.FakeData(b); err != nil {
-		panic(err)
+	return &Base{
+		I:    -64,
+		I8:   -8,
+		I16:  -16,
+		I32:  -32,
+		I64:  -64,
+		Ui:   64,
+		Ui8:  8,
+		Ui16: 16,
+		Ui32: 32,
+		Ui64: 64,
+		Bo:   true,
+		F32:  3.1415926,
+		F64:  1314.520,
+		B:    255,
+		Bs:   []byte("hello world ~"),
+		S:    "say bay ~",
 	}
-	b.I *= -1
-	b.I8 *= -1
-	b.I16 *= -1
-	b.I32 *= -1
-	b.I64 *= -1
-	return b
 }
 
 func TestEncode(t *testing.T) {
@@ -105,11 +112,7 @@ func TestEncodeFaster(t *testing.T) {
 }
 
 func TestEncodeSlice(t *testing.T) {
-	var Ui32s []uint32
-	if err := faker.FakeData(&Ui32s); err != nil {
-		t.Error(err)
-		return
-	}
+	var Ui32s = []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1}
 	buf, err := EncodeSlice(Ui32s)
 	if err != nil {
 		t.Error(err)
