@@ -75,12 +75,16 @@ func EncodeSlice(slice ...interface{}) ([]byte, error) {
 	for index, item := range slice {
 		switch sv := item.(type) {
 		case []uint32:
-			buf = append(buf, []byte{0, 0, 0, 0}...)
-			binary.LittleEndian.PutUint32(buf[len(buf)-4:], uint32(len(sv)))
-			for _, v := range sv {
-				buf = append(buf, []byte{0, 0, 0, 0}...)
-				binary.LittleEndian.PutUint32(buf[len(buf)-4:], v)
+			l := len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(l))
+			if l == 0 {
+				continue
 			}
+			tmp := make([]byte, 4*l)
+			for i := 0; i < l; i++ {
+				binary.LittleEndian.PutUint32(tmp[i*4:], sv[i])
+			}
+			buf = append(buf, tmp...)
 		default:
 			return nil, encodeError(index)
 		}

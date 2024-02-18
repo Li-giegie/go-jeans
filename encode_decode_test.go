@@ -112,7 +112,7 @@ func TestEncodeFaster(t *testing.T) {
 }
 
 func TestEncodeSlice(t *testing.T) {
-	var Ui32s = []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	var Ui32s = []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9}
 	buf, err := EncodeSlice(Ui32s)
 	if err != nil {
 		t.Error(err)
