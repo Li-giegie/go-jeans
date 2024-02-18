@@ -380,3 +380,80 @@ func BenchmarkGobDecode(b *testing.B) {
 		}
 	}
 }
+
+// go test -run=none -cpu 1 -count 5 -benchmem -bench=BenchmarkEncodeSlice
+// goos: windows
+// goarch: amd64
+// pkg: github.com/Li-giegie/go-jeans
+// cpu: AMD Ryzen 5 5600H with Radeon Graphics
+// BenchmarkEncodeSlice      551822              2084 ns/op             352 B/op          1 allocs/op
+// BenchmarkEncodeSlice      598401              2088 ns/op             352 B/op          1 allocs/op
+// BenchmarkEncodeSlice      555241              2103 ns/op             352 B/op          1 allocs/op
+// BenchmarkEncodeSlice      583578              2085 ns/op             352 B/op          1 allocs/op
+// BenchmarkEncodeSlice      568130              2108 ns/op             352 B/op          1 allocs/op
+func BenchmarkEncodeSlice(b *testing.B) {
+	s := NewSlice()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := EncodeSlice(s.FieldsToInterface()...)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
+
+// go test -run=none -cpu 1 -count 5 -benchmem -bench=BenchmarkDecodeSlice
+// goos: windows
+// goarch: amd64
+// pkg: github.com/Li-giegie/go-jeans
+// cpu: AMD Ryzen 5 5600H with Radeon Graphics
+// BenchmarkDecodeSlice     2577890               462.0 ns/op           360 B/op         13 allocs/op
+// BenchmarkDecodeSlice     2589948               441.3 ns/op           360 B/op         13 allocs/op
+// BenchmarkDecodeSlice     2715187               442.8 ns/op           360 B/op         13 allocs/op
+// BenchmarkDecodeSlice     2699566               445.8 ns/op           360 B/op         13 allocs/op
+// BenchmarkDecodeSlice     2645998               448.0 ns/op           360 B/op         13 allocs/op
+func BenchmarkDecodeSlice(b *testing.B) {
+	s := NewSlice()
+	buf, err := EncodeSlice(s.FieldsToInterface()...)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	decodeS := new(Slice)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err = DecodeSlice(buf, decodeS.FieldsPointerToInterface()...)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
+
+// go test -run=none -cpu 1 -count 5 -benchmem -bench=BenchmarkJsonUnmarshalSlice
+// goos: windows
+// goarch: amd64
+// pkg: github.com/Li-giegie/go-jeans
+// cpu: AMD Ryzen 5 5600H with Radeon Graphics
+// BenchmarkJsonUnmarshalSlice       138262              8710 ns/op             352 B/op         35 allocs/op
+// BenchmarkJsonUnmarshalSlice       141118              8647 ns/op             352 B/op         35 allocs/op
+// BenchmarkJsonUnmarshalSlice       140202              8736 ns/op             352 B/op         35 allocs/op
+// BenchmarkJsonUnmarshalSlice       127918              9126 ns/op             352 B/op         35 allocs/op
+// BenchmarkJsonUnmarshalSlice       135925              8680 ns/op             352 B/op         35 allocs/op
+func BenchmarkJsonUnmarshalSlice(b *testing.B) {
+	s := NewSlice()
+	buf, err := json.Marshal(s)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	decodeS := new(Slice)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err = json.Unmarshal(buf, decodeS); err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
