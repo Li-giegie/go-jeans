@@ -8,7 +8,15 @@ import (
 	"unsafe"
 )
 
-var BufferSize = 128
+var (
+	BufferSize      = 128
+	SliceBufferSize = 256
+)
+
+const (
+	FALSE = iota
+	TRUE
+)
 
 // EncodeFaster 在测试文件encode_decode_test.go中查看使用例子
 func EncodeFaster(buf []byte, args ...interface{}) ([]byte, error) {
@@ -49,10 +57,10 @@ func EncodeFaster(buf []byte, args ...interface{}) ([]byte, error) {
 			buf = binary.LittleEndian.AppendUint64(buf, math.Float64bits(v))
 		case bool:
 			if v {
-				buf = append(buf, 1)
+				buf = append(buf, TRUE)
 				continue
 			}
-			buf = append(buf, 0)
+			buf = append(buf, FALSE)
 		default:
 			return nil, encodeError(i)
 		}
@@ -71,20 +79,136 @@ func Encode(args ...interface{}) ([]byte, error) {
 
 // EncodeSlice 在测试文件encode_decode_test.go中查看使用例子
 func EncodeSlice(slice ...interface{}) ([]byte, error) {
-	var buf = make([]byte, 0, BufferSize)
+	buf, err := EncodeSliceFaster(make([]byte, 0, SliceBufferSize), slice...)
+	if err == nil {
+		SliceBufferSize = len(buf)
+	}
+	return buf, err
+}
+
+func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
+	var length, i int
 	for index, item := range slice {
 		switch sv := item.(type) {
+		case []uint:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint64(buf, uint64(sv[i]))
+				}
+			}
+		case []int:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint64(buf, uint64(sv[i]))
+				}
+			}
+		case []uint8:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				buf = append(buf, sv...)
+			}
+		case []uint16:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint16(buf, sv[i])
+				}
+			}
 		case []uint32:
-			l := len(sv)
-			buf = binary.LittleEndian.AppendUint32(buf, uint32(l))
-			if l == 0 {
-				continue
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint32(buf, sv[i])
+				}
 			}
-			tmp := make([]byte, 4*l)
-			for i := 0; i < l; i++ {
-				binary.LittleEndian.PutUint32(tmp[i*4:], sv[i])
+		case []uint64:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint64(buf, sv[i])
+				}
 			}
-			buf = append(buf, tmp...)
+		case []int8:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = append(buf, uint8(sv[i]))
+				}
+			}
+		case []int16:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint16(buf, uint16(sv[i]))
+				}
+			}
+		case []int32:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint32(buf, uint32(sv[i]))
+				}
+			}
+		case []int64:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint64(buf, uint64(sv[i]))
+				}
+			}
+		case []float32:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint32(buf, math.Float32bits(sv[i]))
+				}
+			}
+		case []float64:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					buf = binary.LittleEndian.AppendUint64(buf, math.Float64bits(sv[i]))
+				}
+			}
+		case []bool:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				for i = 0; i < length; i++ {
+					if sv[i] {
+						buf = append(buf, TRUE)
+						continue
+					}
+					buf = append(buf, FALSE)
+				}
+			}
+		case []string:
+			length = len(sv)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(length))
+			if length != 0 {
+				var itemLen int
+				for i = 0; i < length; i++ {
+					itemLen = len(sv[i])
+					buf = binary.LittleEndian.AppendUint32(buf, uint32(itemLen))
+					if itemLen > 0 {
+						buf = append(buf, stringToBytes(&sv[i])...)
+					}
+				}
+			}
 		default:
 			return nil, encodeError(index)
 		}

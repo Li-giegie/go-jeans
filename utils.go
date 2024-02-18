@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"unsafe"
 )
 
 var ErrOfBytesToBaseType_float = errors.New("float err: of Decode float bounds out of max or min value")
@@ -156,4 +157,15 @@ func CountLength(args ...interface{}) (length int) {
 		}
 	}
 	return
+}
+
+func stringToBytes(str *string) []byte {
+	var tmpBuffer []byte
+	*(*string)(unsafe.Pointer(&tmpBuffer)) = *str
+	*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(*str)
+	return tmpBuffer
+}
+
+func bytesToString(buf []byte) *string {
+	return (*string)(unsafe.Pointer(&buf))
 }
