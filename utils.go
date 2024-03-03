@@ -9,9 +9,11 @@ import (
 	"unsafe"
 )
 
-var ErrOfBytesToBaseType_float = errors.New("float err: of Decode float bounds out of max or min value")
-var ErrOfBytesToBaseType_String = errors.New("string err: of Decode resolution length is greater than the remaining length")
-var ErrOfBytesToBaseType_SliceBytes = errors.New("slice byte err: of Decode  resolution length is greater than the remaining length")
+var (
+	ErrOfBytesToBaseType_float      = errors.New("float err: of Decode float bounds out of max or min value")
+	ErrOfBytesToBaseType_String     = errors.New("string err: of Decode resolution length is greater than the remaining length")
+	ErrOfBytesToBaseType_SliceBytes = errors.New("slice byte err: of Decode  resolution length is greater than the remaining length")
+)
 
 // PacketHerderLenType 头长度
 type PacketHerderLenType uint8
@@ -22,9 +24,72 @@ const (
 	PacketHerderLenType_uint64
 )
 
+var SupportList = map[string]struct{}{
+	"int":        {},
+	"int8":       {},
+	"int16":      {},
+	"int32":      {},
+	"int64":      {},
+	"uint":       {},
+	"uint8":      {},
+	"uint16":     {},
+	"uint32":     {},
+	"uint64":     {},
+	"byte":       {},
+	"float32":    {},
+	"float64":    {},
+	"string":     {},
+	"bool":       {},
+	"*int":       {},
+	"*int8":      {},
+	"*int16":     {},
+	"*int32":     {},
+	"*int64":     {},
+	"*uint":      {},
+	"*uint8":     {},
+	"*uint16":    {},
+	"*uint32":    {},
+	"*uint64":    {},
+	"*byte":      {},
+	"*float32":   {},
+	"*float64":   {},
+	"*string":    {},
+	"*bool":      {},
+	"[]int":      {},
+	"[]int8":     {},
+	"[]int16":    {},
+	"[]int32":    {},
+	"[]int64":    {},
+	"[]uint":     {},
+	"[]uint8":    {},
+	"[]uint16":   {},
+	"[]uint32":   {},
+	"[]uint64":   {},
+	"[]byte":     {},
+	"[]float32":  {},
+	"[]float64":  {},
+	"[]string":   {},
+	"[]bool":     {},
+	"*[]int":     {},
+	"*[]int8":    {},
+	"*[]int16":   {},
+	"*[]int32":   {},
+	"*[]int64":   {},
+	"*[]uint":    {},
+	"*[]uint8":   {},
+	"*[]uint16":  {},
+	"*[]uint32":  {},
+	"*[]uint64":  {},
+	"*[]byte":    {},
+	"*[]float32": {},
+	"*[]float64": {},
+	"*[]string":  {},
+	"*[]bool":    {},
+}
+
 // Pack 将一个字节切片重新封装成：4个字节长度+buf，的新buf（数据包）
 func Pack(buf []byte) []byte {
-	var hl = make([]byte, 4)
+	hl := make([]byte, 4)
 	binary.LittleEndian.PutUint32(hl, uint32(len(buf)))
 	return append(hl, buf...)
 }
@@ -62,7 +127,7 @@ func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
 
 // Unpack 入参一个reader，返回一个有由Pack、PackN打包的字节切片
 func Unpack(r io.Reader) (buf []byte, err error) {
-	var packHeaderLen = make([]byte, 4)
+	packHeaderLen := make([]byte, 4)
 	_, err = io.ReadFull(r, packHeaderLen)
 	if err != nil {
 		return packHeaderLen, err
@@ -102,7 +167,7 @@ func UnpackN(r io.Reader, pLen PacketHerderLenType) (buf []byte, err error) {
 }
 
 func read(r io.Reader, length uint64) ([]byte, error) {
-	var tmp = make([]byte, length)
+	tmp := make([]byte, length)
 	_, err := io.ReadFull(r, tmp)
 	return tmp, err
 }
@@ -112,18 +177,7 @@ func CheckField(args ...interface{}) (index int, err error) {
 	for i := 0; i < len(args); i++ {
 		switch t := args[i].(type) {
 		case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
-		default:
-			return i, fmt.Errorf("field type: %T val: %v nonsupport", t, t)
-		}
-	}
-	return -1, nil
-}
-
-// CheckFieldSlice 用于判断切片是否支持编码 返回值 > -1 表示又不支持的字段
-func CheckFieldSlice(args ...interface{}) (index int, err error) {
-	for i := 0; i < len(args); i++ {
-		switch t := args[i].(type) {
-		case []uint32:
+		case []uint, []uint8, []uint16, []uint32, []uint64, []int, []int8, []int16, []int32, []int64, []float32, []float64, []bool, []string:
 		default:
 			return i, fmt.Errorf("field type: %T val: %v nonsupport", t, t)
 		}

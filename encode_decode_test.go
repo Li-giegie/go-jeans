@@ -3,10 +3,11 @@ package go_jeans
 import (
 	"encoding/json"
 	"fmt"
-	faker "github.com/bxcodec/faker/v3"
 	"os"
 	"reflect"
 	"testing"
+
+	faker "github.com/bxcodec/faker/v3"
 )
 
 type Base struct {
@@ -53,7 +54,7 @@ func (b *Base) FieldsPointerToInterface() []interface{} {
 }
 
 func NewBase() *Base {
-	var b = new(Base)
+	b := new(Base)
 	if err := faker.FakeData(b); err != nil {
 		panic(err)
 	}
@@ -72,7 +73,7 @@ func TestEncode(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	var decodeBase = new(Base)
+	decodeBase := new(Base)
 	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
 	if err != nil {
 		t.Error(err)
@@ -86,14 +87,14 @@ func TestEncode(t *testing.T) {
 }
 
 func TestEncodeFaster(t *testing.T) {
-	var buf = make([]byte, 0, 89)
+	buf := make([]byte, 0, 89)
 	base := NewBase()
 	result, err := EncodeFaster(buf, base.FieldsToInterface()...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	var decodeBase = new(Base)
+	decodeBase := new(Base)
 	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
 	if err != nil {
 		t.Error(err)
@@ -188,8 +189,8 @@ func TestEncodeSlice(t *testing.T) {
 				fmt.Println("json err: ", err1, err2)
 				return
 			}
-			err1 = os.WriteFile("./t1.json", buf1, 0666)
-			err2 = os.WriteFile("./t2.json", buf2, 0666)
+			err1 = os.WriteFile("./t1.json", buf1, 0o666)
+			err2 = os.WriteFile("./t2.json", buf2, 0o666)
 			if err1 != nil || err2 != nil {
 				fmt.Println("write file err: ", err1, err2)
 				return

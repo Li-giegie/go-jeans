@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"testing"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/protobuf/proto"
 	"github.com/vmihailenco/msgpack/v5"
-	"testing"
 )
 
 // go test -run=none -cpu 1 -count 5 -benchmem -bench=BenchmarkEncode$
@@ -51,8 +52,8 @@ func BenchmarkDecode(b *testing.B) {
 		b.Error(err)
 		return
 	}
-	var decodeBase = new(Base)
-	var decodeFields = decodeBase.FieldsPointerToInterface()
+	decodeBase := new(Base)
+	decodeFields := decodeBase.FieldsPointerToInterface()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err = Decode(buf, decodeFields...); err != nil {
@@ -60,7 +61,6 @@ func BenchmarkDecode(b *testing.B) {
 			return
 		}
 	}
-
 }
 
 // go test -run=none -cpu 1 -count 5 -benchmem -bench=BenchmarkEncodeAndDecode$
@@ -82,7 +82,7 @@ func BenchmarkEncodeAndDecode(b *testing.B) {
 			b.Error(err)
 			return
 		}
-		var decodeBase = new(Base)
+		decodeBase := new(Base)
 		if err = Decode(buf, decodeBase.FieldsPointerToInterface()...); err != nil {
 			b.Error(err)
 			return
@@ -102,7 +102,7 @@ func BenchmarkEncodeAndDecode(b *testing.B) {
 // BenchmarkEncodeFaster   22003531                53.31 ns/op            0 B/op          0 allocs/op
 func BenchmarkEncodeFaster(b *testing.B) {
 	base := NewBase()
-	var buf = make([]byte, 0, CountLength(base.FieldsToInterface()...))
+	buf := make([]byte, 0, CountLength(base.FieldsToInterface()...))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if _, err := EncodeFaster(buf, base.FieldsToInterface()...); err != nil {
@@ -152,7 +152,7 @@ func BenchmarkJsonUnmarshal(b *testing.B) {
 		b.Error(err)
 		return
 	}
-	var unmarshalBase = new(Base)
+	unmarshalBase := new(Base)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err = json.Unmarshal(buf, unmarshalBase); err != nil {
@@ -201,7 +201,7 @@ func BenchmarkJsonMarshalAndUnmarshal(b *testing.B) {
 // BenchmarkProtoBufMarshal         4954760               227.7 ns/op            64 B/op          1 allocs/op
 // BenchmarkProtoBufMarshal         4888285               241.4 ns/op           112 B/op          1 allocs/op
 func BenchmarkProtoBufMarshal(b *testing.B) {
-	var base = new(BaseType_PB)
+	base := new(BaseType_PB)
 	if err := faker.FakeData(base); err != nil {
 		b.Error(err)
 		return
@@ -226,7 +226,7 @@ func BenchmarkProtoBufMarshal(b *testing.B) {
 // BenchmarkProtoBufUnmarshal       4892127               249.4 ns/op           128 B/op          2 allocs/op
 // BenchmarkProtoBufUnmarshal       4925493               241.5 ns/op           112 B/op          2 allocs/op
 func BenchmarkProtoBufUnmarshal(b *testing.B) {
-	var base = new(BaseType_PB)
+	base := new(BaseType_PB)
 	if err := faker.FakeData(base); err != nil {
 		b.Error(err)
 		return
@@ -257,7 +257,7 @@ func BenchmarkProtoBufUnmarshal(b *testing.B) {
 // BenchmarkProtoBufMarshalAndUnmarshal     1984470               570.0 ns/op           336 B/op          4 allocs/op
 // BenchmarkProtoBufMarshalAndUnmarshal     2124021               564.4 ns/op           288 B/op          4 allocs/op
 func BenchmarkProtoBufMarshalAndUnmarshal(b *testing.B) {
-	var base = new(BaseType_PB)
+	base := new(BaseType_PB)
 	if err := faker.FakeData(base); err != nil {
 		b.Error(err)
 		return
@@ -317,7 +317,7 @@ func BenchmarkMsgPackUnmarshal(b *testing.B) {
 		b.Error(err)
 		return
 	}
-	var unmarshalBase = new(Base)
+	unmarshalBase := new(Base)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err = msgpack.Unmarshal(buf, unmarshalBase); err != nil {
