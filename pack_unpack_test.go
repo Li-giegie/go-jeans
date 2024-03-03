@@ -7,7 +7,7 @@ import (
 
 func TestPackUnpack(t *testing.T) {
 	// 10 byte
-	var data = []byte("hello word!")
+	data := []byte("hello word!")
 	data = Pack(data)
 	_, err := Unpack(bytes.NewBuffer(data))
 	if err != nil {
@@ -16,7 +16,7 @@ func TestPackUnpack(t *testing.T) {
 }
 
 func TestPackUnpackN(t *testing.T) {
-	var data = []byte("hello word")
+	data := []byte("hello word")
 	data, err := PackN(data, PacketHerderLenType_uint16)
 	if err != nil {
 		t.Error(err)

@@ -79,7 +79,7 @@ func TestEncode(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	var decodeBase = new(Base)
+	decodeBase := new(Base)
 	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
 	if err != nil {
 		t.Error(err)
@@ -93,14 +93,14 @@ func TestEncode(t *testing.T) {
 }
 
 func TestEncodeFaster(t *testing.T) {
-	var buf = make([]byte, 0, 89)
+	buf := make([]byte, 0, 89)
 	base := NewBase()
 	result, err := EncodeFaster(buf, base.FieldsToInterface()...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	var decodeBase = new(Base)
+	decodeBase := new(Base)
 	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
 	if err != nil {
 		t.Error(err)
