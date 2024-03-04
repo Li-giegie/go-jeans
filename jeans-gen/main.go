@@ -7,72 +7,65 @@ import (
 	"flag"
 	"fmt"
 	go_jeans "github.com/Li-giegie/go-jeans"
+	"io"
 	"io/fs"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
 
-const (
-	x          = "{{x}}"
-	structName = "{{structName}}"
-	args       = "{{args}}"
-)
-
-const EncodeTemplate = `func ({{x}} *{{structName}}) Encode() ([]byte, error) {
-	return go_jeans.Encode({{args}})
-}`
-
-const DecodeTemplate = `func ({{x}} *{{structName}}) Decode(data []byte) error {
-	return go_jeans.Decode(data{{args}})
-}`
-
 type structCache struct {
-	File string
+	fileName     string
+	structString string
 	*StructInfo
 }
 
-func (s *structCache) gen() error {
-	f, err := os.OpenFile(s.File+"-gen-jeans", os.O_CREATE|os.O_RDWR, 0755)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	var encodeT = EncodeTemplate
-	var decodeT = DecodeTemplate
-	//替换x
-	encodeT = strings.Replace(encodeT, x, s.Name[:1], 1)
-	decodeT = strings.Replace(decodeT, x, s.Name[:1], 1)
-	//替换结构体名
-	encodeT = strings.Replace(encodeT, structName, s.Name, 1)
-	decodeT = strings.Replace(decodeT, structName, s.Name, 1)
+func (s *structCache) gen() ([]byte, error) {
+	var templates = []string{EncodeTemplate, DecodeTemplate, StringTemplate}
 	//替换参数列表
-	var enArgs, deArgs bytes.Buffer
+	var buf, enArgs, deArgs, strArgs, strFormat bytes.Buffer
 	for _, field := range s.Fields {
+		strFormat.WriteString(field.Name + ": %v, ")
 		if field.IsPointer {
 			enArgs.WriteString(",*" + string(s.Name[0]) + "." + field.Name)
 			deArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
+			strArgs.WriteString(",*" + string(s.Name[0]) + "." + field.Name)
 			continue
 		}
 		enArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
+		strArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
 		deArgs.WriteString(",&" + string(s.Name[0]) + "." + field.Name)
 	}
-	encodeT = strings.Replace(encodeT, args, enArgs.String()[1:], 1)
-	decodeT = strings.Replace(decodeT, args, deArgs.String(), 1)
-	_, err = f.WriteString(encodeT)
-	_, err = f.WriteString("\n")
-	_, err = f.WriteString(decodeT)
-	return err
+	for i, _ := range templates {
+		//替换x
+		templates[i] = strings.Replace(templates[i], x, s.Name[:1], 1)
+		//替换结构体名
+		templates[i] = strings.Replace(templates[i], structName, s.Name, 1)
+	}
+	templates[0] = strings.Replace(templates[0], args, enArgs.String()[1:], 1)
+	templates[1] = strings.Replace(templates[1], args, deArgs.String(), 1)
+	templates[2] = strings.Replace(templates[2], args, "\""+s.Name+" {"+strFormat.String()[:strFormat.Len()-2]+"}\""+strArgs.String(), 1)
+
+	buf.WriteString("\n\n//jeans-gen: struct name: " + s.Name + " time: " + time.Now().String() + "\n")
+	for _, template := range templates {
+		if _, err := buf.WriteString(template + "\n"); err != nil {
+			return nil, err
+		}
+	}
+	return buf.Bytes(), nil
 }
 
 var (
 	description = flag.String("description", "", "jeans-gen是一个生成go-jeans编解码函数的工具")
 	Paths       = flag.String("p", "./", "可以是一个文件或者目录，多个文件或者目录用“,”分割")
 	StructList  = flag.String("s", "", "结构体名称,多个名称用\",\"分割,取值为auto时会查找代码中标注“// todo:jeans-gen”的结构体")
+	out         = flag.String("o", "%auto%", "保存生成代码的位置,可选值[ \"%auto%\" | \"%append%\" | 任意一个路径 ]\n取值为 \"%auto%\" 时自动生成到每个结构体同级目录下 \"文件名-gen-jeans\"文件中\n取值为 \"%append%\" 时插入生成代码到go源文件中，不会删除任何代码")
 )
 
 type configure struct {
@@ -111,11 +104,8 @@ func newConf(Paths, StructList *string) (*configure, error) {
 	c.structCache = make(map[string]structCache, len(c.structs))
 	return c, nil
 }
-func init() {
-	flag.Parse()
-}
-
 func main() {
+	flag.Parse()
 	conf, err := newConf(Paths, StructList)
 	if err != nil {
 		log.Fatalln(err)
@@ -129,8 +119,9 @@ func main() {
 		for _, s := range p.FindAllStructString(string(buf), true) {
 			stu := p.Parse(s, "jeans")
 			conf.structCache[stu.Name] = structCache{
-				File:       path,
-				StructInfo: stu,
+				fileName:     path,
+				StructInfo:   stu,
+				structString: s,
 			}
 		}
 	}
@@ -146,17 +137,51 @@ func main() {
 		}
 		jeansStruct = append(jeansStruct, tmpStu)
 	}
-	for _, info := range jeansStruct {
-		fmt.Println(info.Name, info.File)
-		for _, field := range info.Fields {
-			fmt.Println("统计结果：", *field)
+	var fileMap = make(map[string]*os.File)
+	defer func() {
+		for _, file := range fileMap {
+			_ = file.Close()
 		}
-		if err = info.gen(); err != nil {
+	}()
+	for _, info := range jeansStruct {
+		genBuf, err := info.gen()
+		if err != nil {
 			log.Fatalln(err)
+		}
+		switch *out {
+		case "%append%":
+			fBuf, err := os.ReadFile(info.fileName)
+			if err != nil {
+				log.Fatalln("read file fail ", err)
+			}
+			n := bytes.Index(fBuf, []byte(info.structString))
+			if n == -1 {
+				log.Fatalln("find struct fail")
+			}
+			err = InsertDataAtPosition(info.fileName, int64(n+len(info.structString)), genBuf)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		default:
+			fname := info.fileName + "-jeans-gen"
+			if *out != "%auto%" {
+				fname = *out
+			}
+			f, ok := fileMap[fname]
+			if !ok {
+				f, err = os.OpenFile(fname, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0755)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				fileMap[fname] = f
+			}
+			_, err = f.Write(genBuf)
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 	return
-
 }
 
 type StructInfo struct {
@@ -360,7 +385,8 @@ func PathExist(_path string) (ok, isDir bool) {
 // 统计一个结构体包含的所有字段信息
 func statisticalField(allStruct map[string]structCache, supportType map[string]struct{}, _struct *structCache, isRecursion ...bool) (ret *structCache, err error) {
 	ret = &structCache{
-		File: _struct.File,
+		fileName:     _struct.fileName,
+		structString: _struct.structString,
 		StructInfo: &StructInfo{
 			Name:   _struct.Name,
 			Fields: make([]*FieldInfo, 0, len(_struct.Fields)),
@@ -412,4 +438,49 @@ func GetFileName(filename string) string {
 	}
 	// 如果没有后缀，直接返回文件名
 	return filename
+}
+
+func InsertDataAtPosition(filename string, position int64, data []byte) error {
+	// 打开文件以供读取
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// 读取从插入位置到文件末尾的数据
+	restData, err := ioutil.ReadAll(io.NewSectionReader(file, position, -1))
+	if err != nil {
+		return err
+	}
+
+	// 关闭文件
+	file.Close()
+
+	// 重新打开文件以供写入
+	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// 移动文件指针到插入位置
+	_, err = file.Seek(position, 0)
+	if err != nil {
+		return err
+	}
+
+	// 写入要插入的数据
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+
+	// 将剩余的数据写回文件
+	_, err = file.Write(restData)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
