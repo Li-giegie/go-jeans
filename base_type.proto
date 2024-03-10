@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "./;go_jeans";
+
+message BaseType_PB {
+    bool b = 1;
+    int32 i = 2;
+    int32 i8 = 3;
+    int32 i16 = 4;
+    int32 i32 = 5;
+    int64 i64 = 6;
+    uint32 ui = 7;
+    uint32 ui8 = 8;
+    uint32 ui16 = 9;
+    uint32 ui32 = 10;
+    uint64 ui64 = 11;
+    bytes bs = 12;
+    float f32 = 13;
+    double f64 = 14;
+    string s = 15;
+}
