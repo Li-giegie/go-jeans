@@ -1,0 +1,33 @@
+
+
+//jeans-gen: struct name: Base time: 2024-03-10 11:09:55.4522119 +0800 CST m=+0.095474701
+func (B *Base) Encode() ([]byte, error) {
+	return go_jeans.Encode(B.I,B.I8,B.I16,B.I32,B.I64,B.Ui,B.Ui8,B.Ui16,B.Ui32,B.Ui64,B.Bo,B.F32,B.F64,B.B,B.Bs,B.S)
+}
+func (B *Base) Decode(data []byte) error {
+	return go_jeans.Decode(data,&B.I,&B.I8,&B.I16,&B.I32,&B.I64,&B.Ui,&B.Ui8,&B.Ui16,&B.Ui32,&B.Ui64,&B.Bo,&B.F32,&B.F64,&B.B,&B.Bs,&B.S)
+}
+func (B *Base) String() string {
+	return fmt.Sprintf("Base {I: %v, I8: %v, I16: %v, I32: %v, I64: %v, Ui: %v, Ui8: %v, Ui16: %v, Ui32: %v, Ui64: %v, Bo: %v, F32: %v, F64: %v, B: %v, Bs: %v, S: %v}",B.I,B.I8,B.I16,B.I32,B.I64,B.Ui,B.Ui8,B.Ui16,B.Ui32,B.Ui64,B.Bo,B.F32,B.F64,B.B,B.Bs,B.S)
+}
+
+
+//jeans-gen: struct name: Slice time: 2024-03-10 11:11:53.5220343 +0800 CST m=+0.053916101
+func (S *Slice) Encode() ([]byte, error) {
+	return go_jeans.Encode(S.Is,S.I8s,S.I16s,S.I32s,S.I64s,S.Uis,S.Ui8s,S.Ui16s,S.Ui32s,S.Ui64s,S.Bos,S.F32s,S.F64s,S.Bs,S.Ss)
+}
+func (S *Slice) Decode(data []byte) error {
+	return go_jeans.Decode(data,&S.Is,&S.I8s,&S.I16s,&S.I32s,&S.I64s,&S.Uis,&S.Ui8s,&S.Ui16s,&S.Ui32s,&S.Ui64s,&S.Bos,&S.F32s,&S.F64s,&S.Bs,&S.Ss)
+}
+
+
+//jeans-gen: struct name: Slice time: 2024-03-10 11:12:40.1944854 +0800 CST m=+0.050249201
+func (S *Slice) Encode() ([]byte, error) {
+	return go_jeans.Encode(S.Is,S.I8s,S.I16s,S.I32s,S.I64s,S.Uis,S.Ui8s,S.Ui16s,S.Ui32s,S.Ui64s,S.Bos,S.F32s,S.F64s,S.Bs,S.Ss)
+}
+func (S *Slice) Decode(data []byte) error {
+	return go_jeans.Decode(data,&S.Is,&S.I8s,&S.I16s,&S.I32s,&S.I64s,&S.Uis,&S.Ui8s,&S.Ui16s,&S.Ui32s,&S.Ui64s,&S.Bos,&S.F32s,&S.F64s,&S.Bs,&S.Ss)
+}
+func (S *Slice) String() string {
+	return fmt.Sprintf("Slice {Is: %v, I8s: %v, I16s: %v, I32s: %v, I64s: %v, Uis: %v, Ui8s: %v, Ui16s: %v, Ui32s: %v, Ui64s: %v, Bos: %v, F32s: %v, F64s: %v, Bs: %v, Ss: %v}",S.Is,S.I8s,S.I16s,S.I32s,S.I64s,S.Uis,S.Ui8s,S.Ui16s,S.Ui32s,S.Ui64s,S.Bos,S.F32s,S.F64s,S.Bs,S.Ss)
+}

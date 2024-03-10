@@ -172,6 +172,31 @@ func read(r io.Reader, length uint64) ([]byte, error) {
 	return tmp, err
 }
 
+type fieldType uint8
+
+const (
+	fieldType_nonsupport = iota
+	fieldType_base
+	fieldType_base_pointer
+	fieldType_slice
+	fieldType_slice_pointer
+)
+
+func getFieldType(arg interface{}) fieldType {
+	switch arg.(type) {
+	case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
+		return fieldType_base
+	case []uint, []uint8, []uint16, []uint32, []uint64, []int, []int8, []int16, []int32, []int64, []float32, []float64, []bool, []string:
+		return fieldType_slice
+	case *string, *int8, *uint8, *bool, *int16, *uint16, *int32, *uint32, *float32, *int, *uint, *int64, *uint64, *float64:
+		return fieldType_base
+	case *[]uint, *[]uint8, *[]uint16, *[]uint32, *[]uint64, *[]int, *[]int8, *[]int16, *[]int32, *[]int64, *[]float32, *[]float64, *[]bool, *[]string:
+		return fieldType_slice_pointer
+	default:
+		return fieldType_nonsupport
+	}
+}
+
 // CheckField 是否支持编码 返回值 > -1 表示又不支持的字段
 func CheckField(args ...interface{}) (index int, err error) {
 	for i := 0; i < len(args); i++ {
@@ -183,34 +208,6 @@ func CheckField(args ...interface{}) (index int, err error) {
 		}
 	}
 	return -1, nil
-}
-
-// CountLength 统计字段的长度，可用于定义缓冲区容量
-// 例如：
-// var a,b,c string
-// n,_ := CountLength(a,b,c)
-// buf := make([]byte,0,n)
-// buf,_= EncodeV2(buf,a,b,c)
-func CountLength(args ...interface{}) (length int) {
-	for i := 0; i < len(args); i++ {
-		switch v := args[i].(type) {
-		case string:
-			length += 4 + len(v)
-		case []byte:
-			length += 4 + len(v)
-		case int8, uint8, bool:
-			length++
-		case int16, uint16:
-			length += 2
-		case int32, uint32, float32:
-			length += 4
-		case int, uint, int64, uint64, float64:
-			length += 8
-		default:
-			panic("field nonsupport Call the CheckField or CheckFieldSlice function to get details")
-		}
-	}
-	return
 }
 
 func stringToBytes(str *string) []byte {

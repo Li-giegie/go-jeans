@@ -27,6 +27,10 @@ type Base struct {
 	S    string
 }
 
+func (b *Base) String() string {
+	return fmt.Sprintf("Base {I: %v, I8: %v, I16: %v, I32: %v, I64: %v, Ui: %v, Ui8: %v, Ui16: %v, Ui32: %v, Ui64: %v, Bo: %v, F32: %v, F64: %v, B: %v, Bs: %s, S: %v}", b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S)
+}
+
 func (b *Base) FieldNum() int {
 	return 16
 }
@@ -52,6 +56,7 @@ func (b *Base) FieldsPointerToInterface() []interface{} {
 }
 
 func NewBase() *Base {
+
 	return &Base{
 		I:    -64,
 		I8:   -8,
@@ -131,6 +136,10 @@ type Slice struct {
 	Ss    []string
 }
 
+func (S *Slice) String() string {
+	return fmt.Sprintf("Slice {Is: %v, I8s: %v, I16s: %v, I32s: %v, I64s: %v, Uis: %v, Ui8s: %v, Ui16s: %v, Ui32s: %v, Ui64s: %v, Bos: %v, F32s: %v, F64s: %v, Bs: %v, Ss: %v}", S.Is, S.I8s, S.I16s, S.I32s, S.I64s, S.Uis, S.Ui8s, S.Ui16s, S.Ui32s, S.Ui64s, S.Bos, S.F32s, S.F64s, S.Bs, S.Ss)
+}
+
 func (b *Slice) FieldNum() int {
 	return 15
 }
@@ -202,5 +211,45 @@ func TestEncodeSlice(t *testing.T) {
 		}
 		t.Error("DeepEqual fail")
 		return
+	}
+}
+
+func TestEncodeBaseAndSlice(t *testing.T) {
+	for k := 0; k < 10; k++ {
+		b := NewBase()
+		s := NewSlice()
+		args := make([]interface{}, 0, b.FieldNum()+s.FieldNum())
+		for _, i := range b.FieldsToInterface() {
+			args = append(args, i)
+		}
+		for _, i := range s.FieldsToInterface() {
+			args = append(args, i)
+		}
+		buf, err := Encode(args...)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		rb := new(Base)
+		rs := new(Slice)
+		rargs := make([]interface{}, 0, rb.FieldNum()+rs.FieldNum())
+		for _, i := range rb.FieldsPointerToInterface() {
+			rargs = append(rargs, i)
+		}
+		for _, i := range rs.FieldsPointerToInterface() {
+			rargs = append(rargs, i)
+		}
+
+		if err = Decode(buf, rargs...); err != nil {
+			t.Error(err)
+			return
+		}
+
+		if !reflect.DeepEqual(b, rb) {
+			t.Error("base DeepEqual fail")
+		}
+		if !reflect.DeepEqual(s, rs) {
+			t.Error("slice DeepEqual fail")
+		}
 	}
 }

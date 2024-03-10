@@ -118,6 +118,8 @@ func main() {
 		}
 		for _, s := range p.FindAllStructString(string(buf), true) {
 			stu := p.Parse(s, "jeans")
+			stu.PackageName = p.parsePackageName(string(buf))
+
 			conf.structCache[stu.Name] = structCache{
 				fileName:     path,
 				StructInfo:   stu,
@@ -125,6 +127,9 @@ func main() {
 			}
 		}
 	}
+	//for _, c := range conf.structCache {
+	//	fmt.Println("解析到结构体：",c.StructInfo.PackageName)
+	//}
 	jeansStruct := make([]*structCache, 0, len(conf.structs))
 	for _, s := range conf.structs {
 		stu, ok := conf.structCache[s]
@@ -185,8 +190,9 @@ func main() {
 }
 
 type StructInfo struct {
-	Name   string
-	Fields []*FieldInfo
+	PackageName string
+	Name        string
+	Fields      []*FieldInfo
 }
 
 type FieldInfo struct {
@@ -233,6 +239,17 @@ func (p *parser) Parse(structString string, tagKey ...string) *StructInfo {
 	stru.Name = p.parseStructName(structString)
 	stru.Fields = p.parseField(stru.Name, structString, tagKey)
 	return stru
+}
+
+func (p *parser) parsePackageName(src string) string {
+	for _, s := range strings.Split(src, "\n") {
+		n:=strings.Index(s,"package ")
+		if n == -1 {
+			continue
+		}
+		return strings.TrimSpace(s[n+8:])
+	}
+	return ""
 }
 
 func (p *parser) parseStructName(structString string) string {
