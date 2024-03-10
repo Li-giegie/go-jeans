@@ -17,7 +17,7 @@ const (
 	TRUE
 )
 
-// EncodeSlice 在测试文件encode_decode_test.go中查看使用例子
+// EncodeSlice 仅编码切片类型
 func EncodeSlice(slice ...interface{}) ([]byte, error) {
 	buf, err := EncodeSliceFaster(make([]byte, 0, SliceBufferSize), slice...)
 	if err == nil {
@@ -26,6 +26,7 @@ func EncodeSlice(slice ...interface{}) ([]byte, error) {
 	return buf, err
 }
 
+// EncodeSliceFaster 仅编码切片类型
 func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
 	var length, i int
 	for index, item := range slice {

@@ -6,6 +6,7 @@ import (
 	"unsafe"
 )
 
+// Encode 编码基本类型或切片类型
 func Encode(args ...interface{}) ([]byte, error) {
 	buf, err := EncodeFaster(make([]byte, 0, BufferSize), args...)
 	if err == nil {
@@ -14,6 +15,7 @@ func Encode(args ...interface{}) ([]byte, error) {
 	return buf, err
 }
 
+// EncodeFaster 编码基本类型或切片类型，buf参数为一个缓冲字节切片，长度为0容量为预估值，例如 make([]byte,0,128)
 func EncodeFaster(buf []byte, args ...interface{}) ([]byte, error) {
 	var length, j int
 	for i := 0; i < len(args); i++ {

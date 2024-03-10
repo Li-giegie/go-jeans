@@ -6,6 +6,7 @@ import (
 	"unsafe"
 )
 
+// Decode 解码一个切片字节，参数args为可变参数，支持类型基本类型、切片类型
 func Decode(buf []byte, args ...interface{}) error {
 	var index int
 	var length, j uint32

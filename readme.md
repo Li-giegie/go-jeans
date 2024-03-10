@@ -12,6 +12,36 @@ go get -u github.com/Li-giegie/go-jeans
 ```
 
 ### 使用方法
+[编解码支持列表](#支持列表)  
+编码方法：  
+基础类型 EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error)  
+- buf 为存放结果的缓冲区，编码结果为函数最终返回值并非该参数
+- args 为要编码的字段，字段类型参考支持列表，
+
+基础类型 EncodeBase(args ...interface{}) ([]byte, error)
+- args 为要编码的字段，字段类型参考支持列表，
+
+切片类型 EncodeSlice(slice ...interface{}) ([]byte, error)
+- slice 为要编码的字段，字段类型参考支持列表
+
+切片类型 EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error)
+- buf 为存放结果的缓冲区，编码结果为函数最终返回值并非该参数
+- slice 为要编码的字段，字段类型参考支持列表
+
+混合类型 Encode、EncodeFaster参数为基本类型切片类型
+
+解码方法：
+
+基本类型 DecodeBase(buf []byte, args ...interface{}) error
+- buf 为编码的字节切片
+- args 为要还原的指针参数类型列表
+
+切片类型 DecodeSlice(buf []byte, slice ...interface{}) error
+- buf 为编码的字节切片
+- slice 为要还原的指针切片类型参数列表
+
+混合类型 Decode参数为基本指针类型切片指针类型
+
 ```go
 // 编码（序列化） 将go中的基本值类型进行编码，编码的参数和解码的参数顺序必须一致，只有在传递的类型不支持时会返回错误，其他情况不会，注意这一步并不打包返回的切片
 func TestEncode(t *testing.T) {
@@ -122,3 +152,24 @@ BenchmarkGobDecode                         52582             22945 ns/op        
 ```
 
 <img src="./benchmark.png" alt="benchmark.png">
+
+### 支持列表
+编码支持字段类型：
+
+EncodeBase、EncodeBaseFaster
+- string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64
+
+EncodeSlice、EncodeSliceFaster
+- []uint, []uint8, []uint16, []uint32, []uint64, []int, []int8, []int16, []int32, []int64, []float32, []float64, []bool, []string
+
+Encode、EncodeFaster 为上面两种编码的混合版，参数只要是上面两种类型的都支持
+
+解码支持字段类型为编码类型的指针：
+
+DecodeBase
+- *string, *int8, *uint8, *bool, *int16, *uint16, *int32, *uint32, *float32, *int, *uint, *int64, *uint64, *float64
+
+DecodeSlice
+- *[]uint, *[]uint8, *[]uint16, *[]uint32, *[]uint64, *[]int, *[]int8, *[]int16, *[]int32, *[]int64, *[]float32, *[]float64, *[]bool, *[]string
+
+Decode 为上面两种解码的混合版

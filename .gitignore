@@ -1,1 +1,4 @@
 .idea
+encode_decode_becn_test.go
+base_type.proto
+base_type.pb.go

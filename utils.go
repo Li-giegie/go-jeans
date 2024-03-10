@@ -3,7 +3,6 @@ package go_jeans
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"math"
 	"unsafe"
@@ -195,19 +194,6 @@ func getFieldType(arg interface{}) fieldType {
 	default:
 		return fieldType_nonsupport
 	}
-}
-
-// CheckField 是否支持编码 返回值 > -1 表示又不支持的字段
-func CheckField(args ...interface{}) (index int, err error) {
-	for i := 0; i < len(args); i++ {
-		switch t := args[i].(type) {
-		case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
-		case []uint, []uint8, []uint16, []uint32, []uint64, []int, []int8, []int16, []int32, []int64, []float32, []float64, []bool, []string:
-		default:
-			return i, fmt.Errorf("field type: %T val: %v nonsupport", t, t)
-		}
-	}
-	return -1, nil
 }
 
 func stringToBytes(str *string) []byte {

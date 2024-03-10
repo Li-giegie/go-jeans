@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// EncodeBaseFaster 在测试文件encode_decode_test.go中查看使用例子
+// EncodeBaseFaster 仅编码基本类型
 func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
@@ -56,7 +56,7 @@ func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 	return buf, nil
 }
 
-// EncodeBase 在测试文件encode_decode_test.go中查看使用例子
+// EncodeBase 仅编码基本类型
 func EncodeBase(args ...interface{}) ([]byte, error) {
 	buf, err := EncodeBaseFaster(make([]byte, 0, BufferSize), args...)
 	if err == nil {

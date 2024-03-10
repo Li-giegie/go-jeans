@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-// DecodeSlice 将切片类型的编码还原成切片，支持列表[*[]uint32]
+// DecodeSlice 仅解码切片类型，slice 参数为切片类型的指针例如 *[]int
 func DecodeSlice(buf []byte, slice ...interface{}) error {
 	var index int
 	var length, i uint32
