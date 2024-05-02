@@ -56,7 +56,6 @@ func (b *Base) FieldsPointerToInterface() []interface{} {
 }
 
 func NewBase() *Base {
-
 	return &Base{
 		I:    -64,
 		I8:   -8,
@@ -215,7 +214,7 @@ func TestEncodeSlice(t *testing.T) {
 }
 
 func TestEncodeBaseAndSlice(t *testing.T) {
-	for k := 0; k < 10; k++ {
+	for k := 0; k < 100; k++ {
 		b := NewBase()
 		s := NewSlice()
 		args := make([]interface{}, 0, b.FieldNum()+s.FieldNum())
