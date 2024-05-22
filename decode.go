@@ -3,7 +3,6 @@ package go_jeans
 import (
 	"encoding/binary"
 	"math"
-	"unsafe"
 )
 
 // Decode 解码一个切片字节，参数args为可变参数，支持类型基本类型、切片类型
@@ -17,8 +16,7 @@ func Decode(buf []byte, args ...interface{}) error {
 			if int(l) > len(buf[index+4:]) {
 				return ErrOfBytesToBaseType_String
 			}
-			b := buf[index+4 : int(l)+index+4]
-			*v = *(*string)(unsafe.Pointer(&b))
+			*v = *bytesToString(buf[index+4 : int(l)+index+4])
 			index += 4 + int(l)
 		case *int:
 			*v = int(binary.LittleEndian.Uint64(buf[index : index+8]))

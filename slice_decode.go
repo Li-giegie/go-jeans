@@ -180,5 +180,5 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 }
 
 func decodeError(i int) error {
-	return errors.New("decode err: index is " + strconv.Itoa(i) + "unsupported type ")
+	return errors.New("decode err: index is " + strconv.Itoa(i) + " unsupported type ")
 }

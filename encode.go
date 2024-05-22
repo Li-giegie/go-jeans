@@ -2,7 +2,6 @@ package go_jeans
 
 import (
 	"math"
-	"unsafe"
 )
 
 // Encode 编码基本类型或切片类型
@@ -20,11 +19,8 @@ func EncodeFaster(buf []byte, args ...interface{}) ([]byte, error) {
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
 		case string:
-			var tmpBuffer []byte
-			*(*string)(unsafe.Pointer(&tmpBuffer)) = v
-			*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(v)
 			buf = littleAppendUint32(buf, uint32(len(v)))
-			buf = append(buf, tmpBuffer...)
+			buf = append(buf, *stringToBytes(&v)...)
 		case int:
 			buf = littleAppendUint64(buf, uint64(v))
 		case []byte:
@@ -161,13 +157,13 @@ func EncodeFaster(buf []byte, args ...interface{}) ([]byte, error) {
 		case []string:
 			length = len(v)
 			buf = littleAppendUint32(buf, uint32(length))
-			if length != 0 {
+			if length > 0 {
 				var itemLen int
 				for j = 0; j < length; j++ {
 					itemLen = len(v[j])
 					buf = littleAppendUint32(buf, uint32(itemLen))
 					if itemLen > 0 {
-						buf = append(buf, stringToBytes(&v[j])...)
+						buf = append(buf, *stringToBytes(&v[j])...)
 					}
 				}
 			}

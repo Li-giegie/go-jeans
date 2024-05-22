@@ -123,12 +123,9 @@ func TestEncodeFaster(t *testing.T) {
 ### TODO
 优化代码
 
-支持切片类型（当前支持[]uint32）
-
-支持更多类型
 
 ### Benchmark测试
-数据来自我的联想笔记本电脑
+数据来自我的联想笔记本电脑（仅供参考）
 ```
 go test -run=none -cpu 1 -benchmem -bench=Benchmark
 goos: windows
@@ -150,8 +147,6 @@ BenchmarkMsgPackUnmarshal                1000000              1188 ns/op        
 BenchmarkGobEncode                       2202207               459.9 ns/op           304 B/op          0 allocs/op
 BenchmarkGobDecode                         52582             22945 ns/op            8672 B/op        253 allocs/op
 ```
-
-<img src="./benchmark.png" alt="benchmark.png">
 
 ### 支持列表
 编码支持字段类型：

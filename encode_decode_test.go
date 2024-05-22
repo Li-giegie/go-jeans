@@ -96,6 +96,28 @@ func TestEncode(t *testing.T) {
 	fmt.Println(base, decodeBase)
 }
 
+func BenchmarkCheckEncodeBase(b *testing.B) {
+	base := NewBase()
+	fields := base.FieldsToInterface()
+	resB := new(Base)
+	resFields := resB.FieldsPointerToInterface()
+	for i := 0; i < b.N; i++ {
+		result, err := Encode(fields...)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		if err = Decode(result, resFields...); err != nil {
+			b.Error(err)
+			return
+		}
+		if !reflect.DeepEqual(base, resB) {
+			b.Error("val not equal")
+			return
+		}
+	}
+}
+
 func TestEncodeFaster(t *testing.T) {
 	buf := make([]byte, 0, 89)
 	base := NewBase()
@@ -139,7 +161,7 @@ func (S *Slice) String() string {
 	return fmt.Sprintf("Slice {Is: %v, I8s: %v, I16s: %v, I32s: %v, I64s: %v, Uis: %v, Ui8s: %v, Ui16s: %v, Ui32s: %v, Ui64s: %v, Bos: %v, F32s: %v, F64s: %v, Bs: %v, Ss: %v}", S.Is, S.I8s, S.I16s, S.I32s, S.I64s, S.Uis, S.Ui8s, S.Ui16s, S.Ui32s, S.Ui64s, S.Bos, S.F32s, S.F64s, S.Bs, S.Ss)
 }
 
-func (b *Slice) FieldNum() int {
+func (s *Slice) FieldNum() int {
 	return 15
 }
 
@@ -184,32 +206,34 @@ func NewSlice() *Slice {
 }
 
 func TestEncodeSlice(t *testing.T) {
-	s := NewSlice()
-	buf, err := EncodeSlice(s.FieldsToInterface()...)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	decodeUi32s := new(Slice)
-	if err = DecodeSlice(buf, decodeUi32s.FieldsPointerToInterface()...); err != nil {
-		t.Error(err)
-		return
-	}
-	if !reflect.DeepEqual(s, decodeUi32s) {
-		buf1, err1 := json.MarshalIndent(s, "", "\t")
-		buf2, err2 := json.MarshalIndent(decodeUi32s, "", "\t")
-		if err1 != nil || err2 != nil {
-			fmt.Println("json err: ", err1, err2)
+	for i := 0; i < 1000; i++ {
+		s := NewSlice()
+		buf, err := EncodeSlice(s.FieldsToInterface()...)
+		if err != nil {
+			t.Error(err)
 			return
 		}
-		err1 = os.WriteFile("./t1.json", buf1, 0666)
-		err2 = os.WriteFile("./t2.json", buf2, 0666)
-		if err1 != nil || err2 != nil {
-			fmt.Println("write file err: ", err1, err2)
+		decodeUi32s := new(Slice)
+		if err = DecodeSlice(buf, decodeUi32s.FieldsPointerToInterface()...); err != nil {
+			t.Error(err)
 			return
 		}
-		t.Error("DeepEqual fail")
-		return
+		if !reflect.DeepEqual(s, decodeUi32s) {
+			buf1, err1 := json.MarshalIndent(s, "", "\t")
+			buf2, err2 := json.MarshalIndent(decodeUi32s, "", "\t")
+			if err1 != nil || err2 != nil {
+				fmt.Println("json err: ", err1, err2)
+				return
+			}
+			err1 = os.WriteFile("./t1.json", buf1, 0666)
+			err2 = os.WriteFile("./t2.json", buf2, 0666)
+			if err1 != nil || err2 != nil {
+				fmt.Println("write file err: ", err1, err2)
+				return
+			}
+			t.Error("DeepEqual fail")
+			return
+		}
 	}
 }
 
@@ -238,7 +262,6 @@ func TestEncodeBaseAndSlice(t *testing.T) {
 		for _, i := range rs.FieldsPointerToInterface() {
 			rargs = append(rargs, i)
 		}
-
 		if err = Decode(buf, rargs...); err != nil {
 			t.Error(err)
 			return

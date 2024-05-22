@@ -145,7 +145,7 @@ func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
 					itemLen = len(sv[i])
 					buf = littleAppendUint32(buf, uint32(itemLen))
 					if itemLen > 0 {
-						buf = append(buf, stringToBytes(&sv[i])...)
+						buf = append(buf, *stringToBytes(&sv[i])...)
 					}
 				}
 			}

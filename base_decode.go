@@ -3,7 +3,6 @@ package go_jeans
 import (
 	"encoding/binary"
 	"math"
-	"unsafe"
 )
 
 // DecodeBase 将一个字节切片序列化成入参的值，参数要求是GO的基本类型，指针形式传递，编码的参数和解码的参数顺序必须一致
@@ -16,8 +15,7 @@ func DecodeBase(buf []byte, args ...interface{}) error {
 			if int(l) > len(buf[index+4:]) {
 				return ErrOfBytesToBaseType_String
 			}
-			b := buf[index+4 : int(l)+index+4]
-			*v = *(*string)(unsafe.Pointer(&b))
+			*v = *bytesToString(buf[index+4 : int(l)+index+4])
 			index += 4 + int(l)
 		case *int:
 			*v = int(binary.LittleEndian.Uint64(buf[index : index+8]))

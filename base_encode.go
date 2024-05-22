@@ -2,7 +2,6 @@ package go_jeans
 
 import (
 	"math"
-	"unsafe"
 )
 
 // EncodeBaseFaster 仅编码基本类型
@@ -10,11 +9,8 @@ func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 	for i := 0; i < len(args); i++ {
 		switch v := args[i].(type) {
 		case string:
-			var tmpBuffer []byte
-			*(*string)(unsafe.Pointer(&tmpBuffer)) = v
-			*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(v)
 			buf = littleAppendUint32(buf, uint32(len(v)))
-			buf = append(buf, tmpBuffer...)
+			buf = append(buf, *stringToBytes(&v)...)
 		case int:
 			buf = littleAppendUint64(buf, uint64(v))
 		case []byte:

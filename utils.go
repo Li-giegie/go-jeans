@@ -196,11 +196,8 @@ func getFieldType(arg interface{}) fieldType {
 	}
 }
 
-func stringToBytes(str *string) []byte {
-	var tmpBuffer []byte
-	*(*string)(unsafe.Pointer(&tmpBuffer)) = *str
-	*(*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&tmpBuffer)) + 2*unsafe.Sizeof(&tmpBuffer))) = len(*str)
-	return tmpBuffer
+func stringToBytes(str *string) *[]byte {
+	return (*[]byte)(unsafe.Pointer(str))
 }
 
 func bytesToString(buf []byte) *string {
