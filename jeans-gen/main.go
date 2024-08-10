@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	go_jeans "github.com/Li-giegie/go-jeans"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -32,19 +31,20 @@ func (s *structCache) gen() ([]byte, error) {
 	var buf, enArgs, deArgs, strArgs, strFormat bytes.Buffer
 	for _, field := range s.Fields {
 		strFormat.WriteString(field.Name + ": %v, ")
+		shoutName := strings.ToLower(s.Name[:1])
 		if field.IsPointer {
-			enArgs.WriteString(",*" + string(s.Name[0]) + "." + field.Name)
-			deArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
-			strArgs.WriteString(",*" + string(s.Name[0]) + "." + field.Name)
+			enArgs.WriteString(",*" + shoutName + "." + field.Name)
+			deArgs.WriteString("," + shoutName + "." + field.Name)
+			strArgs.WriteString(",*" + shoutName + "." + field.Name)
 			continue
 		}
-		enArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
-		strArgs.WriteString("," + string(s.Name[0]) + "." + field.Name)
-		deArgs.WriteString(",&" + string(s.Name[0]) + "." + field.Name)
+		enArgs.WriteString("," + shoutName + "." + field.Name)
+		strArgs.WriteString("," + shoutName + "." + field.Name)
+		deArgs.WriteString(",&" + shoutName + "." + field.Name)
 	}
 	for i, _ := range templates {
 		//替换x
-		templates[i] = strings.Replace(templates[i], x, s.Name[:1], 1)
+		templates[i] = strings.Replace(templates[i], x, strings.ToLower(s.Name[:1]), 1)
 		//替换结构体名
 		templates[i] = strings.Replace(templates[i], structName, s.Name, 1)
 	}
@@ -136,7 +136,7 @@ func main() {
 		if !ok {
 			log.Fatalf("Struct \"%v\" is not found in the following files\n%v\n", s, strings.Join(conf.paths, "\n"))
 		}
-		tmpStu, err := statisticalField(CopyStructCache(conf.structCache), go_jeans.SupportList, &stu)
+		tmpStu, err := statisticalField(CopyStructCache(conf.structCache), SupportList, &stu)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -243,7 +243,7 @@ func (p *parser) Parse(structString string, tagKey ...string) *StructInfo {
 
 func (p *parser) parsePackageName(src string) string {
 	for _, s := range strings.Split(src, "\n") {
-		n:=strings.Index(s,"package ")
+		n := strings.Index(s, "package ")
 		if n == -1 {
 			continue
 		}
