@@ -1,19 +1,7 @@
 package go_jeans
 
 import (
-	"errors"
 	"math"
-	"strconv"
-)
-
-var (
-	BufferSize      = 128
-	SliceBufferSize = 256
-)
-
-const (
-	FALSE = iota
-	TRUE
 )
 
 // EncodeSlice 仅编码切片类型
@@ -150,12 +138,8 @@ func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
 				}
 			}
 		default:
-			return nil, encodeError(index)
+			return nil, &InvalidType{index: index}
 		}
 	}
 	return buf, nil
-}
-
-func encodeError(i int) error {
-	return errors.New("encode err: index [" + strconv.Itoa(i) + "] unsupported type ")
 }

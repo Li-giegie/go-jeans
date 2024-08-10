@@ -45,7 +45,7 @@ func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 			}
 			buf = append(buf, FALSE)
 		default:
-			return nil, encodeError(i)
+			return nil, &InvalidType{index: i}
 		}
 	}
 	return buf, nil
@@ -53,9 +53,9 @@ func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 
 // EncodeBase 仅编码基本类型
 func EncodeBase(args ...interface{}) ([]byte, error) {
-	buf, err := EncodeBaseFaster(make([]byte, 0, BufferSize), args...)
+	buf, err := EncodeBaseFaster(make([]byte, 0, BaseBufferSize), args...)
 	if err == nil {
-		BufferSize = len(buf)
+		BaseBufferSize = len(buf)
 	}
 	return buf, err
 }

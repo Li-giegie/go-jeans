@@ -76,7 +76,7 @@ func DecodeBase(buf []byte, args ...interface{}) error {
 			*v = math.Float64frombits(n)
 			index += 8
 		default:
-			return decodeError(i)
+			return &InvalidType{index: i}
 		}
 	}
 	return nil

@@ -115,7 +115,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index += 8
 				}
 			}
-
 		case *[]int:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -126,7 +125,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index += 8
 				}
 			}
-
 		case *[]int8:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -137,7 +135,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index++
 				}
 			}
-
 		case *[]int16:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -148,7 +145,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index += 2
 				}
 			}
-
 		case *[]int32:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -159,7 +155,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index += 4
 				}
 			}
-
 		case *[]int64:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -170,7 +165,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					index += 8
 				}
 			}
-
 		case *[]float32:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -214,7 +208,6 @@ func Decode(buf []byte, args ...interface{}) error {
 					(*v)[j] = false
 				}
 			}
-
 		case *[]string:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
@@ -229,7 +222,7 @@ func Decode(buf []byte, args ...interface{}) error {
 				}
 			}
 		default:
-			return decodeError(i)
+			return &InvalidType{index: i}
 		}
 	}
 	return nil

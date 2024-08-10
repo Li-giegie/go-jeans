@@ -5,8 +5,28 @@ import (
 	"errors"
 	"io"
 	"math"
+	"strconv"
 	"unsafe"
 )
+
+var (
+	BufferSize      = 256
+	BaseBufferSize  = 128
+	SliceBufferSize = 256
+)
+
+const (
+	FALSE = iota
+	TRUE
+)
+
+type InvalidType struct {
+	index int
+}
+
+func (i *InvalidType) Error() string {
+	return "data type is invalid and offset by " + strconv.Itoa(i.index)
+}
 
 var (
 	ErrOfBytesToBaseType_float      = errors.New("float err: of Decode float bounds out of max or min value")
@@ -22,69 +42,6 @@ const (
 	PacketHerderLenType_uint32
 	PacketHerderLenType_uint64
 )
-
-var SupportList = map[string]struct{}{
-	"int":        {},
-	"int8":       {},
-	"int16":      {},
-	"int32":      {},
-	"int64":      {},
-	"uint":       {},
-	"uint8":      {},
-	"uint16":     {},
-	"uint32":     {},
-	"uint64":     {},
-	"byte":       {},
-	"float32":    {},
-	"float64":    {},
-	"string":     {},
-	"bool":       {},
-	"*int":       {},
-	"*int8":      {},
-	"*int16":     {},
-	"*int32":     {},
-	"*int64":     {},
-	"*uint":      {},
-	"*uint8":     {},
-	"*uint16":    {},
-	"*uint32":    {},
-	"*uint64":    {},
-	"*byte":      {},
-	"*float32":   {},
-	"*float64":   {},
-	"*string":    {},
-	"*bool":      {},
-	"[]int":      {},
-	"[]int8":     {},
-	"[]int16":    {},
-	"[]int32":    {},
-	"[]int64":    {},
-	"[]uint":     {},
-	"[]uint8":    {},
-	"[]uint16":   {},
-	"[]uint32":   {},
-	"[]uint64":   {},
-	"[]byte":     {},
-	"[]float32":  {},
-	"[]float64":  {},
-	"[]string":   {},
-	"[]bool":     {},
-	"*[]int":     {},
-	"*[]int8":    {},
-	"*[]int16":   {},
-	"*[]int32":   {},
-	"*[]int64":   {},
-	"*[]uint":    {},
-	"*[]uint8":   {},
-	"*[]uint16":  {},
-	"*[]uint32":  {},
-	"*[]uint64":  {},
-	"*[]byte":    {},
-	"*[]float32": {},
-	"*[]float64": {},
-	"*[]string":  {},
-	"*[]bool":    {},
-}
 
 // Pack 将一个字节切片重新封装成：4个字节长度+buf，的新buf（数据包）
 func Pack(buf []byte) []byte {
@@ -171,33 +128,13 @@ func read(r io.Reader, length uint64) ([]byte, error) {
 	return tmp, err
 }
 
-type fieldType uint8
-
-const (
-	fieldType_nonsupport = iota
-	fieldType_base
-	fieldType_base_pointer
-	fieldType_slice
-	fieldType_slice_pointer
-)
-
-func getFieldType(arg interface{}) fieldType {
-	switch arg.(type) {
-	case string, int8, uint8, bool, int16, uint16, int32, uint32, float32, int, uint, int64, uint64, float64:
-		return fieldType_base
-	case []uint, []uint8, []uint16, []uint32, []uint64, []int, []int8, []int16, []int32, []int64, []float32, []float64, []bool, []string:
-		return fieldType_slice
-	case *string, *int8, *uint8, *bool, *int16, *uint16, *int32, *uint32, *float32, *int, *uint, *int64, *uint64, *float64:
-		return fieldType_base
-	case *[]uint, *[]uint8, *[]uint16, *[]uint32, *[]uint64, *[]int, *[]int8, *[]int16, *[]int32, *[]int64, *[]float32, *[]float64, *[]bool, *[]string:
-		return fieldType_slice_pointer
-	default:
-		return fieldType_nonsupport
-	}
+type str struct {
+	s   string
+	cap int
 }
 
-func stringToBytes(str *string) *[]byte {
-	return (*[]byte)(unsafe.Pointer(str))
+func stringToBytes(s *string) *[]byte {
+	return (*[]byte)(unsafe.Pointer(&str{*s, len(*s)}))
 }
 
 func bytesToString(buf []byte) *string {

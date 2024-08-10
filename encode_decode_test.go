@@ -6,97 +6,115 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
-
-type Base struct {
-	I    int
-	I8   int8
-	I16  int16
-	I32  int32
-	I64  int64
-	Ui   uint
-	Ui8  uint8
-	Ui16 uint16
-	Ui32 uint32
-	Ui64 uint64
-	Bo   bool
-	F32  float32
-	F64  float64
-	B    byte
-	Bs   []byte
-	S    string
-}
-
-func (b *Base) String() string {
-	return fmt.Sprintf("Base {I: %v, I8: %v, I16: %v, I32: %v, I64: %v, Ui: %v, Ui8: %v, Ui16: %v, Ui32: %v, Ui64: %v, Bo: %v, F32: %v, F64: %v, B: %v, Bs: %s, S: %v}", b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S)
-}
-
-func (b *Base) FieldNum() int {
-	return 16
-}
-
-func (b *Base) FieldsToInterface() []interface{} {
-	return []interface{}{
-		b.I, b.I8, b.I16, b.I32, b.I64,
-		b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64,
-		b.Bo, b.B, b.Bs,
-		b.F32, b.F64,
-		b.S,
-	}
-}
-
-func (b *Base) FieldsPointerToInterface() []interface{} {
-	return []interface{}{
-		&b.I, &b.I8, &b.I16, &b.I32, &b.I64,
-		&b.Ui, &b.Ui8, &b.Ui16, &b.Ui32, &b.Ui64,
-		&b.Bo, &b.B, &b.Bs,
-		&b.F32, &b.F64,
-		&b.S,
-	}
-}
-
-func NewBase() *Base {
-	return &Base{
-		I:    -64,
-		I8:   -8,
-		I16:  -16,
-		I32:  -32,
-		I64:  -64,
-		Ui:   64,
-		Ui8:  8,
-		Ui16: 16,
-		Ui32: 32,
-		Ui64: 64,
-		Bo:   true,
-		F32:  3.1415926,
-		F64:  1314.520,
-		B:    255,
-		Bs:   []byte("hello world ~"),
-		S:    "say bay ~",
-	}
-}
 
 func TestEncode(t *testing.T) {
 	base := NewBase()
-	result, err := Encode(base.FieldsToInterface()...)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	slice := NewSlice()
+	fields := base.FieldsToInterface()
+	fields = append(fields, slice.FieldsToInterface()...)
 	decodeBase := new(Base)
-	err = Decode(result, decodeBase.FieldsPointerToInterface()...)
-	if err != nil {
-		t.Error(err)
-		return
+	decodeSlice := new(Slice)
+	decodeFields := decodeBase.FieldsPointerToInterface()
+	decodeFields = append(decodeFields, decodeSlice.FieldsPointerToInterface()...)
+	t1 := time.Now()
+	buf := make([]byte, 0, 472)
+	for i := 0; i < 1000000; i++ {
+		result, err := EncodeFaster(buf, fields...)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		err = Decode(result, decodeFields...)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 	}
-	if !reflect.DeepEqual(base, decodeBase) {
+	println(time.Since(t1).String())
+	if !reflect.DeepEqual(base, decodeBase) || !reflect.DeepEqual(slice, decodeSlice) {
 		t.Error("DeepEqual fail")
 		return
 	}
-	fmt.Println(base, decodeBase)
+	println("TestEncode pass")
 }
 
-func BenchmarkCheckEncodeBase(b *testing.B) {
+func BenchmarkEncode(b *testing.B) {
+	base := NewBase()
+	slice := NewSlice()
+	fields := base.FieldsToInterface()
+	fields = append(fields, slice.FieldsToInterface()...)
+	decodeBase := new(Base)
+	decodeSlice := new(Slice)
+	decodeFields := decodeBase.FieldsPointerToInterface()
+	decodeFields = append(decodeFields, decodeSlice.FieldsPointerToInterface()...)
+	buf := make([]byte, 0, 472)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		data, err := EncodeFaster(buf, fields...)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		err = Decode(data, decodeFields...)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
+
+type bs struct {
+	B *Base
+	S *Slice
+}
+
+func TestJson(t *testing.T) {
+	bs1 := new(bs)
+	bs1.S = NewSlice()
+	bs1.B = NewBase()
+	bs2 := new(bs)
+	t1 := time.Now()
+	for i := 0; i < 1000000; i++ {
+		data, err := json.Marshal(bs1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		err = json.Unmarshal(data, bs2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+	println(time.Since(t1).String())
+	if !reflect.DeepEqual(bs1, bs2) {
+		t.Error("TestJson err")
+	}
+}
+
+func BenchmarkJson(b *testing.B) {
+	bs1 := new(bs)
+	bs1.S = NewSlice()
+	bs1.B = NewBase()
+	bs2 := new(bs)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		data, err := json.Marshal(bs1)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		err = json.Unmarshal(data, bs2)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+	}
+}
+
+func BenchmarkEncodeBase(b *testing.B) {
 	base := NewBase()
 	fields := base.FieldsToInterface()
 	resB := new(Base)
@@ -109,10 +127,6 @@ func BenchmarkCheckEncodeBase(b *testing.B) {
 		}
 		if err = Decode(result, resFields...); err != nil {
 			b.Error(err)
-			return
-		}
-		if !reflect.DeepEqual(base, resB) {
-			b.Error("val not equal")
 			return
 		}
 	}
@@ -137,72 +151,6 @@ func TestEncodeFaster(t *testing.T) {
 		return
 	}
 	fmt.Println(base, decodeBase)
-}
-
-type Slice struct {
-	Is    []int
-	I8s   []int8
-	I16s  []int16
-	I32s  []int32
-	I64s  []int64
-	Uis   []uint
-	Ui8s  []uint8
-	Ui16s []uint16
-	Ui32s []uint32
-	Ui64s []uint64
-	Bos   []bool
-	F32s  []float32
-	F64s  []float64
-	Bs    []byte
-	Ss    []string
-}
-
-func (S *Slice) String() string {
-	return fmt.Sprintf("Slice {Is: %v, I8s: %v, I16s: %v, I32s: %v, I64s: %v, Uis: %v, Ui8s: %v, Ui16s: %v, Ui32s: %v, Ui64s: %v, Bos: %v, F32s: %v, F64s: %v, Bs: %v, Ss: %v}", S.Is, S.I8s, S.I16s, S.I32s, S.I64s, S.Uis, S.Ui8s, S.Ui16s, S.Ui32s, S.Ui64s, S.Bos, S.F32s, S.F64s, S.Bs, S.Ss)
-}
-
-func (s *Slice) FieldNum() int {
-	return 15
-}
-
-func (b *Slice) FieldsToInterface() []interface{} {
-	return []interface{}{
-		b.Is, b.I8s, b.I16s, b.I32s, b.I64s,
-		b.Uis, b.Ui8s, b.Ui16s, b.Ui32s, b.Ui64s,
-		b.Bos, b.Bs, b.Bs,
-		b.F32s, b.F64s,
-		b.Ss,
-	}
-}
-
-func (b *Slice) FieldsPointerToInterface() []interface{} {
-	return []interface{}{
-		&b.Is, &b.I8s, &b.I16s, &b.I32s, &b.I64s,
-		&b.Uis, &b.Ui8s, &b.Ui16s, &b.Ui32s, &b.Ui64s,
-		&b.Bos, &b.Bs, &b.Bs,
-		&b.F32s, &b.F64s,
-		&b.Ss,
-	}
-}
-
-func NewSlice() *Slice {
-	return &Slice{
-		Is:    []int{1, 2, 3, -1, -2, -3},
-		I8s:   []int8{1, 2, 3, -1, -2, -3},
-		I16s:  []int16{1, 2, 3, -1, -2, -3},
-		I32s:  []int32{1, 2, 3, -1, -2, -3},
-		I64s:  []int64{1, 2, 3, -1, -2, -3},
-		Uis:   []uint{1, 2, 3},
-		Ui8s:  []uint8{1, 2, 3},
-		Ui16s: []uint16{1, 2, 3},
-		Ui32s: []uint32{1, 2, 3},
-		Ui64s: []uint64{1, 2, 3},
-		Bos:   []bool{true, false, false},
-		F32s:  []float32{1.11, -2.22, 3.333, 4.4444},
-		F64s:  []float64{1.11, 2.22, 3.333, 4.4444, 5.55555, -6.666666},
-		Bs:    []byte{1, 2, 3, 4, 5, 6},
-		Ss:    []string{"abc", "123das", "", "222", ""},
-	}
 }
 
 func TestEncodeSlice(t *testing.T) {
