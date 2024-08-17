@@ -118,10 +118,10 @@ func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
 			if length != 0 {
 				for i = 0; i < length; i++ {
 					if sv[i] {
-						buf = append(buf, TRUE)
+						buf = append(buf, _true)
 						continue
 					}
-					buf = append(buf, FALSE)
+					buf = append(buf, _false)
 				}
 			}
 		case []string:
@@ -138,7 +138,7 @@ func EncodeSliceFaster(buf []byte, slice ...interface{}) ([]byte, error) {
 				}
 			}
 		default:
-			return nil, &InvalidType{index: index}
+			return nil, &InvalidType{v: sv, i: index}
 		}
 	}
 	return buf, nil

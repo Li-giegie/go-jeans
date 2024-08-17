@@ -40,12 +40,12 @@ func EncodeBaseFaster(buf []byte, args ...interface{}) ([]byte, error) {
 			buf = littleAppendUint64(buf, math.Float64bits(v))
 		case bool:
 			if v {
-				buf = append(buf, TRUE)
+				buf = append(buf, _true)
 				continue
 			}
-			buf = append(buf, FALSE)
+			buf = append(buf, _false)
 		default:
-			return nil, &InvalidType{index: i}
+			return nil, &InvalidType{v: v, i: i}
 		}
 	}
 	return buf, nil

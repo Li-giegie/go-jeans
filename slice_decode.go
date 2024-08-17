@@ -120,9 +120,6 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 				*sv = make([]float32, length)
 				for j = 0; j < length; j++ {
 					n := binary.LittleEndian.Uint32(buf[index : index+4])
-					if float32(n) > math.MaxFloat32 {
-						return ErrOfBytesToBaseType_float
-					}
 					(*sv)[j] = math.Float32frombits(n)
 					index += 4
 				}
@@ -134,9 +131,6 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 				*sv = make([]float64, length)
 				for j = 0; j < length; j++ {
 					n := binary.LittleEndian.Uint64(buf[index : index+8])
-					if float64(n) > math.MaxFloat64 {
-						return ErrOfBytesToBaseType_float
-					}
 					(*sv)[j] = math.Float64frombits(n)
 					index += 8
 				}
@@ -147,7 +141,7 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 			if length > 0 {
 				*sv = make([]bool, length)
 				for j = 0; j < length; j++ {
-					if buf[index] == TRUE {
+					if buf[index] == _true {
 						(*sv)[j] = true
 						index++
 						continue
@@ -171,7 +165,7 @@ func DecodeSlice(buf []byte, slice ...interface{}) error {
 				}
 			}
 		default:
-			return &InvalidType{index: i}
+			return &InvalidType{v: sv, i: i}
 		}
 	}
 	return nil

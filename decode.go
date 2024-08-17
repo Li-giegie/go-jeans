@@ -13,16 +13,13 @@ func Decode(buf []byte, args ...interface{}) error {
 		switch v := args[i].(type) {
 		case *string:
 			l := binary.LittleEndian.Uint32(buf[index : index+4])
-			if int(l) > len(buf[index+4:]) {
-				return ErrOfBytesToBaseType_String
-			}
 			*v = *bytesToString(buf[index+4 : int(l)+index+4])
 			index += 4 + int(l)
 		case *int:
 			*v = int(binary.LittleEndian.Uint64(buf[index : index+8]))
 			index += 8
 		case *bool:
-			if buf[index] == 1 {
+			if buf[index] == _true {
 				*v = true
 			} else {
 				*v = false
@@ -57,23 +54,19 @@ func Decode(buf []byte, args ...interface{}) error {
 			index += 8
 		case *float32:
 			n := binary.LittleEndian.Uint32(buf[index : index+4])
-			if float32(n) > math.MaxFloat32 {
-				return ErrOfBytesToBaseType_float
-			}
 			*v = math.Float32frombits(n)
 			index += 4
 		case *float64:
 			n := binary.LittleEndian.Uint64(buf[index : index+8])
-			if float64(n) > math.MaxUint64 {
-				return ErrOfBytesToBaseType_float
-			}
 			*v = math.Float64frombits(n)
 			index += 8
 		case *[]uint:
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]uint, length)
+				if uint32(len(*v)) < length {
+					*v = make([]uint, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = uint(binary.LittleEndian.Uint64(buf[index : index+8]))
 					index += 8
@@ -89,7 +82,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]uint16, length)
+				if uint32(len(*v)) < length {
+					*v = make([]uint16, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = binary.LittleEndian.Uint16(buf[index : index+2])
 					index += 2
@@ -99,7 +94,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]uint32, length)
+				if uint32(len(*v)) < length {
+					*v = make([]uint32, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = binary.LittleEndian.Uint32(buf[index : index+4])
 					index += 4
@@ -109,7 +106,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]uint64, length)
+				if uint32(len(*v)) < length {
+					*v = make([]uint64, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = binary.LittleEndian.Uint64(buf[index : index+8])
 					index += 8
@@ -119,7 +118,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]int, length)
+				if uint32(len(*v)) < length {
+					*v = make([]int, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = int(binary.LittleEndian.Uint64(buf[index : index+8]))
 					index += 8
@@ -129,7 +130,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]int8, length)
+				if uint32(len(*v)) < length {
+					*v = make([]int8, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = int8(buf[index])
 					index++
@@ -139,7 +142,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]int16, length)
+				if uint32(len(*v)) < length {
+					*v = make([]int16, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = int16(binary.LittleEndian.Uint16(buf[index : index+2]))
 					index += 2
@@ -149,7 +154,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]int32, length)
+				if uint32(len(*v)) < length {
+					*v = make([]int32, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = int32(binary.LittleEndian.Uint32(buf[index : index+4]))
 					index += 4
@@ -159,7 +166,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]int64, length)
+				if uint32(len(*v)) < length {
+					*v = make([]int64, length)
+				}
 				for j = 0; j < length; j++ {
 					(*v)[j] = int64(binary.LittleEndian.Uint64(buf[index : index+8]))
 					index += 8
@@ -169,12 +178,11 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]float32, length)
+				if uint32(len(*v)) < length {
+					*v = make([]float32, length)
+				}
 				for j = 0; j < length; j++ {
 					n := binary.LittleEndian.Uint32(buf[index : index+4])
-					if float32(n) > math.MaxFloat32 {
-						return ErrOfBytesToBaseType_float
-					}
 					(*v)[j] = math.Float32frombits(n)
 					index += 4
 				}
@@ -183,12 +191,11 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]float64, length)
+				if uint32(len(*v)) < length {
+					*v = make([]float64, length)
+				}
 				for j = 0; j < length; j++ {
 					n := binary.LittleEndian.Uint64(buf[index : index+8])
-					if float64(n) > math.MaxFloat64 {
-						return ErrOfBytesToBaseType_float
-					}
 					(*v)[j] = math.Float64frombits(n)
 					index += 8
 				}
@@ -197,9 +204,11 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]bool, length)
+				if uint32(len(*v)) < length {
+					*v = make([]bool, length)
+				}
 				for j = 0; j < length; j++ {
-					if buf[index] == TRUE {
+					if buf[index] == _true {
 						(*v)[j] = true
 						index++
 						continue
@@ -212,7 +221,9 @@ func Decode(buf []byte, args ...interface{}) error {
 			length = binary.LittleEndian.Uint32(buf[index : index+4])
 			index += 4
 			if length > 0 {
-				*v = make([]string, length)
+				if uint32(len(*v)) < length {
+					*v = make([]string, length)
+				}
 				var itemLen uint32
 				for j = 0; j < length; j++ {
 					itemLen = binary.LittleEndian.Uint32(buf[index : index+4])
@@ -222,7 +233,7 @@ func Decode(buf []byte, args ...interface{}) error {
 				}
 			}
 		default:
-			return &InvalidType{index: i}
+			return &InvalidType{v: v, i: i}
 		}
 	}
 	return nil

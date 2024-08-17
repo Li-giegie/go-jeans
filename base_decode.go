@@ -12,9 +12,6 @@ func DecodeBase(buf []byte, args ...interface{}) error {
 		switch v := args[i].(type) {
 		case *string:
 			l := binary.LittleEndian.Uint32(buf[index : index+4])
-			if int(l) > len(buf[index+4:]) {
-				return ErrOfBytesToBaseType_String
-			}
 			*v = *bytesToString(buf[index+4 : int(l)+index+4])
 			index += 4 + int(l)
 		case *int:
@@ -22,13 +19,10 @@ func DecodeBase(buf []byte, args ...interface{}) error {
 			index += 8
 		case *[]byte:
 			l := binary.LittleEndian.Uint32(buf[index : index+4])
-			if int(l) > len(buf[index+4:]) {
-				return ErrOfBytesToBaseType_SliceBytes
-			}
 			*v = buf[index+4 : int(l)+index+4]
 			index += 4 + int(l)
 		case *bool:
-			if buf[index] == 1 {
+			if buf[index] == _true {
 				*v = true
 			} else {
 				*v = false
@@ -63,20 +57,14 @@ func DecodeBase(buf []byte, args ...interface{}) error {
 			index += 8
 		case *float32:
 			n := binary.LittleEndian.Uint32(buf[index : index+4])
-			if float32(n) > math.MaxFloat32 {
-				return ErrOfBytesToBaseType_float
-			}
 			*v = math.Float32frombits(n)
 			index += 4
 		case *float64:
 			n := binary.LittleEndian.Uint64(buf[index : index+8])
-			if float64(n) > math.MaxUint64 {
-				return ErrOfBytesToBaseType_float
-			}
 			*v = math.Float64frombits(n)
 			index += 8
 		default:
-			return &InvalidType{index: i}
+			return &InvalidType{v: v, i: i}
 		}
 	}
 	return nil

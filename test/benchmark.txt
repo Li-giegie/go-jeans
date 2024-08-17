@@ -1,0 +1,25 @@
+------------------------------------------------------------------------------------
+[2024-08-17 10:04:00]
+
+Encode：jeans vs JSON
+
+goos: windows
+goarch: amd64
+pkg: github.com/Li-giegie/go-jeans/test
+cpu: AMD Ryzen 5 5600H with Radeon Graphics
+BenchmarkEncodeBaseSlice-12              6032090               186.4 ns/op           384 B/op          1 allocs/op
+BenchmarkEncodeFasterBaseSlice-12       10491765               129.8 ns/op             0 B/op          0 allocs/op
+BenchmarkEncodeBufferBaseSlice-12       10180033               123.7 ns/op             0 B/op          0 allocs/op
+BenchmarkEncodeJSONBaseSlice-12           520285              2596 ns/op            1024 B/op          1 allocs/op
+BenchmarkEncoderJSONBaseSlice-12          507734              2090 ns/op               0 B/op          0 allocs/op
+PASS
+
+Decode：jeans vs JSON
+
+BenchmarkUniteEncodeDecode-12            3437347               377.1 ns/op           416 B/op          1 allocs/op
+BenchmarkUniteEncodeFasterDecode-12      4476546               274.1 ns/op             0 B/op          0 allocs/op
+BenchmarkUniteEncodeBufferDecode-12      4609154               282.4 ns/op             0 B/op          0 allocs/op
+BenchmarkUniteEncodeDecodeJSON-12          88126             15063 ns/op            2113 B/op         59 allocs/op
+BenchmarkUniteEncoderDecodeJSON-12         81105             15675 ns/op             856 B/op         55 allocs/op
+PASS
+------------------------------------------------------------------------------------

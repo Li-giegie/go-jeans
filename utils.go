@@ -5,9 +5,23 @@ import (
 	"errors"
 	"io"
 	"math"
-	"strconv"
 	"unsafe"
 )
+
+// PacketType 头长度 + data
+type PacketType uint8
+
+const (
+	// PacketType8 1字节 + data
+	PacketType8 PacketType = iota
+	PacketType16
+	PacketType24
+	PacketType32
+	PacketType64
+)
+
+var pLimitErr = errors.New("PackN err: 'data' exceeds the limit length")
+var ptErr = errors.New("PacketType err: invalid packageType")
 
 var (
 	BufferSize      = 256
@@ -16,116 +30,111 @@ var (
 )
 
 const (
-	FALSE = iota
-	TRUE
+	_false uint8 = iota
+	_true
 )
 
-type InvalidType struct {
-	index int
+type slice struct {
+	ptr unsafe.Pointer
+	len int
+	cap int
 }
 
-func (i *InvalidType) Error() string {
-	return "data type is invalid and offset by " + strconv.Itoa(i.index)
-}
-
-var (
-	ErrOfBytesToBaseType_float      = errors.New("float err: of Decode float bounds out of max or min value")
-	ErrOfBytesToBaseType_String     = errors.New("string err: of Decode resolution length is greater than the remaining length")
-	ErrOfBytesToBaseType_SliceBytes = errors.New("slice byte err: of Decode  resolution length is greater than the remaining length")
-)
-
-// PacketHerderLenType 头长度
-type PacketHerderLenType uint8
-
-const (
-	PacketHerderLenType_uint16 PacketHerderLenType = iota
-	PacketHerderLenType_uint32
-	PacketHerderLenType_uint64
-)
-
-// Pack 将一个字节切片重新封装成：4个字节长度+buf，的新buf（数据包）
-func Pack(buf []byte) []byte {
-	hl := make([]byte, 4)
-	binary.LittleEndian.PutUint32(hl, uint32(len(buf)))
-	return append(hl, buf...)
-}
-
-var PacketHerderLenErr = errors.New("invalid PacketHerderLenType")
-
-// PackN 将一个字节切片重新封装成：自定义长度长度（plen（入参））+ +buf，的新buf（数据包）
-func PackN(buf []byte, pLen PacketHerderLenType) ([]byte, error) {
-	var bufBinayLen []byte
+// PackN 将一个字节切片重新封装成：长度 + 数据
+func PackN(data []byte, pLen PacketType) ([]byte, error) {
+	var buf []byte
+	var headerLen uint64
 	switch pLen {
-	case PacketHerderLenType_uint16:
-		if len(buf)+2 > math.MaxUint16 {
-			return nil, errors.New("WriteHerderLen_16 overflow")
+	case PacketType8:
+		headerLen = math.MaxUint8
+		buf = []byte{byte(len(data))}
+	case PacketType16:
+		headerLen = math.MaxUint16
+		buf = make([]byte, 2)
+		binary.LittleEndian.PutUint16(buf, uint16(len(data)))
+	case PacketType24:
+		headerLen = 0x00FFFFFF
+		lb := len(data)
+		buf = []byte{
+			byte(lb),
+			byte(lb >> 8),
+			byte(lb >> 16),
 		}
-		bufBinayLen = make([]byte, 2)
-		binary.LittleEndian.PutUint16(bufBinayLen, uint16(len(buf)))
-	case PacketHerderLenType_uint32:
-		if uint32(len(buf)+4) > uint32(math.MaxUint32) {
-			return nil, errors.New("WriteHerderLen_32 overflow")
-		}
-		bufBinayLen = make([]byte, 4)
-		binary.LittleEndian.PutUint32(bufBinayLen, uint32(len(buf)))
-	case PacketHerderLenType_uint64:
-		if uint64(len(buf)+8) > uint64(math.MaxUint64) {
-			return nil, errors.New("WriteHerderLen_64 overflow")
-		}
-		bufBinayLen = make([]byte, 8)
-		binary.LittleEndian.PutUint64(bufBinayLen, uint64(len(buf)))
+	case PacketType32:
+		headerLen = math.MaxUint32
+		buf = make([]byte, 4)
+		binary.LittleEndian.PutUint32(buf, uint32(len(data)))
+	case PacketType64:
+		headerLen = math.MaxUint64
+		buf = make([]byte, 8)
+		binary.LittleEndian.PutUint64(buf, uint64(len(data)))
 	default:
-		return nil, PacketHerderLenErr
+		return nil, ptErr
 	}
-
-	return append(bufBinayLen, buf...), nil
+	if uint64(len(data)) > headerLen {
+		return nil, pLimitErr
+	}
+	return append(buf, data...), nil
 }
 
-// Unpack 入参一个reader，返回一个有由Pack、PackN打包的字节切片
-func Unpack(r io.Reader) (buf []byte, err error) {
-	packHeaderLen := make([]byte, 4)
-	_, err = io.ReadFull(r, packHeaderLen)
-	if err != nil {
-		return packHeaderLen, err
-	}
-	pl := binary.LittleEndian.Uint32(packHeaderLen)
-	buf = make([]byte, pl)
-	_, err = io.ReadFull(r, buf)
-	return buf, err
+// LittleEndianPutUint24 使用小端实现对u转换成3字节的正整数切片
+func LittleEndianPutUint24(n uint32, b []byte) {
+	b[0] = byte(n)
+	b[1] = byte(n >> 8)
+	b[2] = byte(n >> 16)
 }
 
-// UnpackN 入参一个reader，返回一个有由Pack、PackN打包的完整的
-func UnpackN(r io.Reader, pLen PacketHerderLenType) (buf []byte, err error) {
+// LittleEndianUint24 转换为3字节的uint32
+func LittleEndianUint24(b []byte) (n uint32) {
+	return uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16
+}
+
+// UnpackN 入参一个reader，返回一个有由Pack、PackN打包的完整的切片
+func UnpackN(r io.Reader, pLen PacketType) (data []byte, err error) {
+	return UnpackBufferN(r, make([]byte, 128), pLen)
+}
+
+func UnpackBufferN(r io.Reader, buf []byte, pLen PacketType) (data []byte, err error) {
 	var packHeaderLen uint64
 	switch pLen {
-	case PacketHerderLenType_uint16:
-		lenBuf, err := read(r, 2)
+	case PacketType8:
+		_, err = io.ReadFull(r, buf[:1])
 		if err != nil {
-			return lenBuf, err
+			return nil, err
 		}
-		packHeaderLen = uint64(binary.LittleEndian.Uint16(lenBuf))
-	case PacketHerderLenType_uint32:
-		lenBuf, err := read(r, 4)
+		packHeaderLen = uint64(buf[0])
+	case PacketType16:
+		_, err = io.ReadFull(r, buf[:2])
 		if err != nil {
-			return lenBuf, err
+			return nil, err
 		}
-		packHeaderLen = uint64(binary.LittleEndian.Uint32(lenBuf))
-	case PacketHerderLenType_uint64:
-		lenBuf, err := read(r, 8)
+		packHeaderLen = uint64(binary.LittleEndian.Uint16(buf[:2]))
+	case PacketType24:
+		_, err = io.ReadFull(r, buf[:3])
 		if err != nil {
-			return lenBuf, err
+			return nil, err
 		}
-		packHeaderLen = binary.LittleEndian.Uint64(lenBuf)
+		packHeaderLen = uint64(uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16)
+	case PacketType32:
+		_, err = io.ReadFull(r, buf[:4])
+		if err != nil {
+			return nil, err
+		}
+		packHeaderLen = uint64(binary.LittleEndian.Uint32(buf[:4]))
+	case PacketType64:
+		_, err := io.ReadFull(r, buf[:8])
+		if err != nil {
+			return nil, err
+		}
+		packHeaderLen = binary.LittleEndian.Uint64(buf[:8])
 	default:
-		return nil, PacketHerderLenErr
+		return nil, pLimitErr
 	}
-	return read(r, packHeaderLen)
-}
-
-func read(r io.Reader, length uint64) ([]byte, error) {
-	tmp := make([]byte, length)
-	_, err := io.ReadFull(r, tmp)
-	return tmp, err
+	if v := uint64(len(buf)); v < packHeaderLen {
+		buf = append(buf, make([]byte, packHeaderLen-v)...)
+	}
+	_, err = io.ReadFull(r, buf[:packHeaderLen])
+	return buf[:packHeaderLen], err
 }
 
 type str struct {
