@@ -80,3 +80,72 @@ func Equal(a, b interface{}) error {
 	}
 	return nil
 }
+
+func TestGenerateJeansFuncs(t *testing.T) {
+	f, err := os.OpenFile("templateFuncs.txt", os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer f.Close()
+	b := new(Base)
+	genRandValue(b)
+	if err = jeans.GenerateJeansFuncs(f, b, jeans.ModeType_All); err != nil {
+		t.Error(err)
+		return
+	}
+	data, err := b.Encode()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	rb := new(Base)
+	if err = rb.Decode(data); err != nil {
+		t.Error(err)
+		return
+	}
+	if !reflect.DeepEqual(b, rb) {
+		t.Error("Decode invalid")
+		return
+	}
+
+	bs := GenBaseSlice()
+	if err = jeans.GenerateJeansFuncs(f, bs, jeans.ModeType_All); err != nil {
+		t.Error(err)
+		return
+	}
+	data, err = bs.Encode()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	rbs := NewBaseSlice()
+	if err = rbs.Decode(data); err != nil {
+		t.Error(err)
+		return
+	}
+	if !reflect.DeepEqual(bs, rbs) {
+		t.Error("decode BaseSlice invalid")
+	}
+	fmt.Println(bs.String())
+	fmt.Println(rbs.String())
+}
+
+type A struct {
+	B
+	//b2 B
+	a []string
+}
+
+type B struct {
+	b1 string `jeans:"enable"`
+	*B
+	b2 *int
+	C
+}
+
+type C struct {
+	i int
+}
+
+type u8 uint8

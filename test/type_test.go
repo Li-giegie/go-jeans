@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	jeans "github.com/Li-giegie/go-jeans"
 	"unsafe"
 )
 
@@ -24,8 +25,24 @@ type Base struct {
 	S    string
 }
 
+func (b *Base) Encode() ([]byte, error) {
+	return jeans.Encode(b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S)
+}
+
+func (b *Base) Decode(data []byte) error {
+	return jeans.Decode(data, &b.I, &b.I8, &b.I16, &b.I32, &b.I64, &b.Ui, &b.Ui8, &b.Ui16, &b.Ui32, &b.Ui64, &b.Bo, &b.F32, &b.F64, &b.B, &b.Bs, &b.S)
+}
+
 func (b *Base) String() string {
-	return fmt.Sprintf("Base {I: %v, I8: %v, I16: %v, I32: %v, I64: %v, Ui: %v, Ui8: %v, Ui16: %v, Ui32: %v, Ui64: %v, Bo: %v, F32: %v, F64: %v, B: %v, Bs: %s, S: %v}", b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S)
+	return fmt.Sprintf("I: %v, I8: %v, I16: %v, I32: %v, I64: %v, Ui: %v, Ui8: %v, Ui16: %v, Ui32: %v, Ui64: %v, Bo: %v, F32: %v, F64: %v, B: %v, Bs: %v, S: %v", b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S)
+}
+
+func (b *Base) Fields() []interface{} {
+	return []interface{}{b.I, b.I8, b.I16, b.I32, b.I64, b.Ui, b.Ui8, b.Ui16, b.Ui32, b.Ui64, b.Bo, b.F32, b.F64, b.B, b.Bs, b.S}
+}
+
+func (b *Base) FieldPointers() []interface{} {
+	return []interface{}{&b.I, &b.I8, &b.I16, &b.I32, &b.I64, &b.Ui, &b.Ui8, &b.Ui16, &b.Ui32, &b.Ui64, &b.Bo, &b.F32, &b.F64, &b.B, &b.Bs, &b.S}
 }
 
 func (b *Base) FieldNum() int {
@@ -206,6 +223,26 @@ func NewT() *T {
 type BaseSlice struct {
 	Base  *Base
 	Slice *Slice
+}
+
+func (b *BaseSlice) Encode() ([]byte, error) {
+	return jeans.Encode(b.Base.I, b.Base.I8, b.Base.I16, b.Base.I32, b.Base.I64, b.Base.Ui, b.Base.Ui8, b.Base.Ui16, b.Base.Ui32, b.Base.Ui64, b.Base.Bo, b.Base.F32, b.Base.F64, b.Base.B, b.Base.Bs, b.Base.S, b.Slice.I, b.Slice.I8s, b.Slice.I16s, b.Slice.I32s, b.Slice.I64s, b.Slice.Uis, b.Slice.Ui8s, b.Slice.Ui16s, b.Slice.Ui32s, b.Slice.Ui64s, b.Slice.Bos, b.Slice.F32s, b.Slice.F64s, b.Slice.Bs, b.Slice.Ss)
+}
+
+func (b *BaseSlice) Decode(data []byte) error {
+	return jeans.Decode(data, &b.Base.I, &b.Base.I8, &b.Base.I16, &b.Base.I32, &b.Base.I64, &b.Base.Ui, &b.Base.Ui8, &b.Base.Ui16, &b.Base.Ui32, &b.Base.Ui64, &b.Base.Bo, &b.Base.F32, &b.Base.F64, &b.Base.B, &b.Base.Bs, &b.Base.S, &b.Slice.I, &b.Slice.I8s, &b.Slice.I16s, &b.Slice.I32s, &b.Slice.I64s, &b.Slice.Uis, &b.Slice.Ui8s, &b.Slice.Ui16s, &b.Slice.Ui32s, &b.Slice.Ui64s, &b.Slice.Bos, &b.Slice.F32s, &b.Slice.F64s, &b.Slice.Bs, &b.Slice.Ss)
+}
+
+func (b *BaseSlice) String() string {
+	return fmt.Sprintf("Base.I: %v, Base.I8: %v, Base.I16: %v, Base.I32: %v, Base.I64: %v, Base.Ui: %v, Base.Ui8: %v, Base.Ui16: %v, Base.Ui32: %v, Base.Ui64: %v, Base.Bo: %v, Base.F32: %v, Base.F64: %v, Base.B: %v, Base.Bs: %v, Base.S: %v, Slice.I: %v, Slice.I8s: %v, Slice.I16s: %v, Slice.I32s: %v, Slice.I64s: %v, Slice.Uis: %v, Slice.Ui8s: %v, Slice.Ui16s: %v, Slice.Ui32s: %v, Slice.Ui64s: %v, Slice.Bos: %v, Slice.F32s: %v, Slice.F64s: %v, Slice.Bs: %v, Slice.Ss: %v", b.Base.I, b.Base.I8, b.Base.I16, b.Base.I32, b.Base.I64, b.Base.Ui, b.Base.Ui8, b.Base.Ui16, b.Base.Ui32, b.Base.Ui64, b.Base.Bo, b.Base.F32, b.Base.F64, b.Base.B, b.Base.Bs, b.Base.S, b.Slice.I, b.Slice.I8s, b.Slice.I16s, b.Slice.I32s, b.Slice.I64s, b.Slice.Uis, b.Slice.Ui8s, b.Slice.Ui16s, b.Slice.Ui32s, b.Slice.Ui64s, b.Slice.Bos, b.Slice.F32s, b.Slice.F64s, b.Slice.Bs, b.Slice.Ss)
+}
+
+func (b *BaseSlice) Fields() []interface{} {
+	return []interface{}{b.Base.I, b.Base.I8, b.Base.I16, b.Base.I32, b.Base.I64, b.Base.Ui, b.Base.Ui8, b.Base.Ui16, b.Base.Ui32, b.Base.Ui64, b.Base.Bo, b.Base.F32, b.Base.F64, b.Base.B, b.Base.Bs, b.Base.S, b.Slice.I, b.Slice.I8s, b.Slice.I16s, b.Slice.I32s, b.Slice.I64s, b.Slice.Uis, b.Slice.Ui8s, b.Slice.Ui16s, b.Slice.Ui32s, b.Slice.Ui64s, b.Slice.Bos, b.Slice.F32s, b.Slice.F64s, b.Slice.Bs, b.Slice.Ss}
+}
+
+func (b *BaseSlice) FieldPointers() []interface{} {
+	return []interface{}{&b.Base.I, &b.Base.I8, &b.Base.I16, &b.Base.I32, &b.Base.I64, &b.Base.Ui, &b.Base.Ui8, &b.Base.Ui16, &b.Base.Ui32, &b.Base.Ui64, &b.Base.Bo, &b.Base.F32, &b.Base.F64, &b.Base.B, &b.Base.Bs, &b.Base.S, &b.Slice.I, &b.Slice.I8s, &b.Slice.I16s, &b.Slice.I32s, &b.Slice.I64s, &b.Slice.Uis, &b.Slice.Ui8s, &b.Slice.Ui16s, &b.Slice.Ui32s, &b.Slice.Ui64s, &b.Slice.Bos, &b.Slice.F32s, &b.Slice.F64s, &b.Slice.Bs, &b.Slice.Ss}
 }
 
 func GenBaseSlice() *BaseSlice {

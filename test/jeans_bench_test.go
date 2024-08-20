@@ -9,9 +9,10 @@ import (
 
 func BenchmarkEncodeBaseSlice(b *testing.B) {
 	d := GenBaseSlice()
-	fields := d.FieldsInterface()
+	fields := d.Fields()
 	for i := 0; i < b.N; i++ {
 		data, err := jeans.Encode(fields...)
+		//data, err := d.Encode()
 		if err != nil {
 			b.Error(err, len(data))
 			return
