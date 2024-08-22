@@ -105,7 +105,7 @@ func TestGenerateJeansFuncs(t *testing.T) {
 		return
 	}
 	if !reflect.DeepEqual(b, rb) {
-		t.Error("Decode invalid")
+		t.Error("Decode invalid", b, "\n", rb)
 		return
 	}
 
@@ -130,22 +130,3 @@ func TestGenerateJeansFuncs(t *testing.T) {
 	fmt.Println(bs.String())
 	fmt.Println(rbs.String())
 }
-
-type A struct {
-	B
-	//b2 B
-	a []string
-}
-
-type B struct {
-	b1 string `jeans:"enable"`
-	*B
-	b2 *int
-	C
-}
-
-type C struct {
-	i int
-}
-
-type u8 uint8

@@ -3,7 +3,6 @@ package test
 import (
 	"fmt"
 	jeans "github.com/Li-giegie/go-jeans"
-	"unsafe"
 )
 
 type Base struct {
@@ -263,10 +262,4 @@ func (s *BaseSlice) FieldsPointerToInterface() []interface{} {
 }
 func (s *BaseSlice) FieldsInterface() []interface{} {
 	return append(s.Base.FieldsToInterface(), s.Slice.FieldsToInterface()...)
-}
-
-type slice struct {
-	ptr unsafe.Pointer
-	len int
-	cap int
 }
